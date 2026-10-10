@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS AdminAccount (
+    Id INTEGER NOT NULL,
+    EmailAddress VARCHAR(254) NOT NULL,
+    PasswordHash VARCHAR(512) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    PRIMARY KEY (Id),
+    CONSTRAINT CK_AdminAccount_Singleton CHECK (Id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

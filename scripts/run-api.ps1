@@ -13,15 +13,25 @@ if (-not (Test-Path -LiteralPath $envFile)) {
 # Load only the application settings; never pass the root password to the API.
 $previousPassword = $env:MYSQL_PASSWORD
 $previousPort = $env:MYSQL_PORT
+$previousAdminEmail = $env:ADMIN_EMAIL
+$previousAdminPassword = $env:ADMIN_INITIAL_PASSWORD
 try {
     $env:MYSQL_PASSWORD = $null
     $env:MYSQL_PORT = '3307'
+    $env:ADMIN_EMAIL = $null
+    $env:ADMIN_INITIAL_PASSWORD = $null
     foreach ($line in Get-Content -LiteralPath $envFile) {
         if ($line -match '^MYSQL_PASSWORD=([A-Za-z0-9]+)$') {
             $env:MYSQL_PASSWORD = $Matches[1]
         }
         elseif ($line -match '^MYSQL_PORT=([0-9]+)$') {
             $env:MYSQL_PORT = $Matches[1]
+        }
+        elseif ($line -match '^ADMIN_EMAIL=(.+)$') {
+            $env:ADMIN_EMAIL = $Matches[1]
+        }
+        elseif ($line -match '^ADMIN_INITIAL_PASSWORD=(.+)$') {
+            $env:ADMIN_INITIAL_PASSWORD = $Matches[1]
         }
     }
     if ([string]::IsNullOrWhiteSpace($env:MYSQL_PASSWORD) -or
@@ -47,4 +57,6 @@ try {
 finally {
     $env:MYSQL_PASSWORD = $previousPassword
     $env:MYSQL_PORT = $previousPort
+    $env:ADMIN_EMAIL = $previousAdminEmail
+    $env:ADMIN_INITIAL_PASSWORD = $previousAdminPassword
 }

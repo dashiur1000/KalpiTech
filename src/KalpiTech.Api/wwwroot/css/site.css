@@ -1,0 +1,14 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #f1f5f9; color: #17233a; font-family: Arial, sans-serif; line-height: 1.6; }
+main { max-width: 620px; margin: 40px auto; padding: 28px; background: white; border-radius: 12px; box-shadow: 0 4px 24px #17233a12; }
+h1 { color: #174e80; margin-bottom: 0; }
+header p { margin-top: 0; color: #526176; }
+label { display: block; margin-top: 12px; }
+input { width: 100%; padding: 10px; border: 1px solid #8a9ab0; border-radius: 5px; font: inherit; }
+button { margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 5px; background: #174e80; color: white; font: inherit; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+:focus-visible { outline: 3px solid #da9300; outline-offset: 3px; }
+#message:not(:empty) { padding: 12px; background: #e5edf7; border-inline-start: 4px solid #174e80; }
+form { margin-bottom: 24px; }
+[hidden] { display: none !important; }
+@media (max-width: 640px) { main { margin: 12px; padding: 20px; } }

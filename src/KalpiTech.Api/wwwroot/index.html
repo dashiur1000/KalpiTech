@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>קלפי טק</title>
+  <link rel="stylesheet" href="/css/site.css">
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+<main>
+  <header><h1>קלפי טק</h1><p>מערכת לניהול רישום הצבעות</p></header>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section id="login" hidden>
+    <h2>התחברות</h2>
+    <form id="login-form">
+      <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
+      <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required>
+      <label for="password">סיסמה</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+      <button type="submit">התחברות</button>
+    </form>
+  </section>
+  <section id="account" hidden>
+    <h2 id="account-title"></h2>
+    <p id="account-name"></p>
+    <p>חיפוש בוחרים ופעולות הבחירות יתווספו בשלבים הבאים.</p>
+    <div id="admin-tools" hidden>
+      <h3>קביעת סיסמת קלפי</h3>
+      <form id="kalpi-form">
+        <label for="kalpi-id">מספר קלפי</label>
+        <input id="kalpi-id" type="number" min="1" max="2147483647" required>
+        <label for="kalpi-password">סיסמה חדשה לקלפי</label>
+        <input id="kalpi-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+        <button type="submit">שמירת סיסמת קלפי</button>
+      </form>
+      <h3>החלפת סיסמת מנהל</h3>
+      <form id="admin-form">
+        <label for="current-password">סיסמת המנהל הנוכחית</label>
+        <input id="current-password" type="password" autocomplete="current-password" maxlength="128" required>
+        <label for="new-password">סיסמת מנהל חדשה</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+        <p>סיסמה חדשה: 12 עד 128 תווים. לאחר ההחלפה יש להתחבר מחדש.</p>
+        <button type="submit">החלפת סיסמת מנהל</button>
+      </form>
+    </div>
+    <button id="logout" type="button">יציאה</button>
+  </section>
+  <noscript>יש להפעיל JavaScript בדפדפן כדי להשתמש במערכת.</noscript>
+</main>
+</body>
+</html>

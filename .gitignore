@@ -487,3 +487,4 @@ $RECYCLE.BIN/
 .venv/
 __pycache__/
 *.pyc
+.local/
