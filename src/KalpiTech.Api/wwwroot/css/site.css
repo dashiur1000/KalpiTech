@@ -11,4 +11,5 @@ button:disabled { opacity: .6; cursor: wait; }
 #message:not(:empty) { padding: 12px; background: #e5edf7; border-inline-start: 4px solid #174e80; }
 form { margin-bottom: 24px; }
 [hidden] { display: none !important; }
+.stage-note { padding: 12px; background: #fff3cd; border-inline-start: 4px solid #b87800; }
 @media (max-width: 640px) { main { margin: 12px; padding: 20px; } }

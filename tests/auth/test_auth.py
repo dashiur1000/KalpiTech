@@ -57,6 +57,7 @@ class Client:
 
 
 class AuthTests(unittest.TestCase):
+    build_directory = '.local/stage04-build'
     @classmethod
     def setUpClass(cls):
         cls.database = "KalpiTechAuthTest_" + uuid.uuid4().hex
@@ -99,7 +100,7 @@ class AuthTests(unittest.TestCase):
 
     @classmethod
     def start_process(cls):
-        cls.process = subprocess.Popen(["dotnet", str(ROOT / ".local/stage04-build/KalpiTech.Api.dll"), "--urls", cls.base],
+        cls.process = subprocess.Popen(["dotnet", str(ROOT / cls.build_directory / "KalpiTech.Api.dll"), "--urls", cls.base],
                                        cwd=ROOT / "src/KalpiTech.Api", env=cls.env, stdout=cls.log, stderr=cls.log,
                                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
         for _ in range(100):

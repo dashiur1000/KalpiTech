@@ -24,8 +24,43 @@
   <section id="account" hidden>
     <h2 id="account-title"></h2>
     <p id="account-name"></p>
-    <p>חיפוש בוחרים ופעולות הבחירות יתווספו בשלבים הבאים.</p>
+    <section aria-label="מצב הבחירות">
+      <h3>מצב הבחירות</h3>
+      <p id="election-status" role="status"></p>
+      <p id="election-times"></p>
+      <p id="election-window"></p>
+    </section>
+    <div id="poll-tools" hidden>
+      <section id="voter-search">
+        <h3>חיפוש בוחר</h3>
+        <form id="voter-form">
+          <label for="voter-id">מספר זהות</label>
+          <input id="voter-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required aria-describedby="voter-id-help">
+          <p id="voter-id-help">יש להזין תשע ספרות, כולל אפסים מובילים.</p>
+          <button type="submit">חיפוש בוחר</button>
+        </form>
+      </section>
+      <section id="voter-confirmation" hidden>
+        <h3 tabindex="-1" id="confirmation-title">אישור הצבעה</h3>
+        <p id="voter-name"></p>
+        <p id="voter-details"></p>
+        <p>מצביע זוהה! אנא הגש לו את מעטפת ההצבעה ולאחר הכנסתה לקלפי לחץ על אישור או ביטול במקרה שאינו חפץ להצביע כרגע.</p>
+        <p class="stage-note">בשלב זה זהו מסך בדיקה בלבד. עדיין אי אפשר לשמור הצבעה או למסור מעטפה על סמך המסך.</p>
+        <button type="button" disabled title="שמירת ההצבעה תתווסף בשלב אישור ההצבעה">אישור</button>
+        <button id="cancel-voter" type="button">ביטול</button>
+      </section>
+    </div>
     <div id="admin-tools" hidden>
+      <h3>הפעלת יום הבחירות — קביעת מועדים</h3>
+      <form id="election-form">
+        <label for="election-start">מועד תחילת הבחירות (שעון ישראל)</label>
+        <input id="election-start" type="datetime-local" required>
+        <label for="election-end">מועד סיום הבחירות (שעון ישראל)</label>
+        <input id="election-end" type="datetime-local" required>
+        <p>המעברים אוטומטיים לפי שעון השרת. לאחר ההתחלה לא ניתן לשנות את המועדים.</p>
+        <button id="save-election" type="submit">שמירת מועדי הבחירות</button>
+      </form>
+      <p>טעינה יזומה והזנת מעטפות כפולות יתווספו בשלבים הבאים.</p>
       <h3>קביעת סיסמת קלפי</h3>
       <form id="kalpi-form">
         <label for="kalpi-id">מספר קלפי</label>

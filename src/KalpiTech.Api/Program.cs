@@ -14,6 +14,9 @@ builder.Logging.AddConsole();
 builder.Services.AddSingleton<DatabaseConnectionFactory>();
 builder.Services.AddSingleton<DatabaseProbe>();
 builder.Services.AddScoped<AccountStore>();
+builder.Services.AddScoped<VoterStore>();
+builder.Services.AddScoped<ElectionStore>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AccountCookies>();
 builder.Services.AddSingleton<PasswordHasher<LoginAccount>>();
 // MVC's built-in CSRF filter needs the services supplied by AddControllersWithViews.
