@@ -19,7 +19,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/apply-schema.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/invoke-sql.ps1 -Query "SHOW TABLES; SELECT * FROM ElectionSettings; SELECT COUNT(*) AS PeopleCount FROM People;"
 ```
 
-צריכות להופיע `Kalpi`, `People` ו-`ElectionSettings`. בשלב זה טבלאות הבוחרים
+צריכות להופיע `Kalpi`, `People` ו-`ElectionSettings`. לאחר שלב 2 ולפני שלב 3 טבלאות הבוחרים
 והקלפיות ריקות. ב-`ElectionSettings` יש שורה אחת, `Id=1`, והמועדים הם `NULL`.
 משמעותם: טרם נקבעו מועדי בחירות. עדיין אין מסך להגדרת המועדים.
 

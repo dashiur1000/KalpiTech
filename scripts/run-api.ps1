@@ -1,3 +1,8 @@
+param(
+    [ValidateRange(1, 65535)]
+    [int]$Port = 5080,
+    [switch]$NoBuild
+)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $projectRoot '.env'
@@ -25,7 +30,16 @@ try {
     }
     Push-Location $projectRoot
     try {
-        dotnet run --project src/KalpiTech.Api --no-launch-profile --urls http://127.0.0.1:5080
+        $loaderPython = Join-Path $projectRoot '.venv/Scripts/python.exe'
+        if (-not (Test-Path -LiteralPath $loaderPython)) {
+            throw 'Run scripts/setup-python.ps1 before starting the API.'
+        }
+        # Bootstrap finishes (or preserves the existing database) before the API starts.
+        & $loaderPython (Join-Path $projectRoot 'tools/data_loader/main.py')
+        if ($LASTEXITCODE -ne 0) { throw 'Data bootstrap failed. The API was not started.' }
+        $runArguments = @('run', '--project', 'src/KalpiTech.Api', '--no-launch-profile', '--urls', "http://127.0.0.1:$Port")
+        if ($NoBuild) { $runArguments += '--no-build' }
+        & dotnet @runArguments
         if ($LASTEXITCODE -ne 0) { throw 'API process failed.' }
     }
     finally { Pop-Location }
