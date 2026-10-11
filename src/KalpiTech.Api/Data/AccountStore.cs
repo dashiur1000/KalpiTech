@@ -35,8 +35,8 @@ public sealed class AccountStore(DatabaseConnectionFactory connections, Password
         var email = configuration["ADMIN_EMAIL"];
         var password = configuration["ADMIN_INITIAL_PASSWORD"];
         if (string.IsNullOrWhiteSpace(email) || email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)
-            || password is null || password.Length is < 12 or > 128 || password.StartsWith("replace_with_", StringComparison.Ordinal))
-            throw new InvalidOperationException("Set ADMIN_EMAIL and ADMIN_INITIAL_PASSWORD (12-128 characters) for first startup.");
+            || string.IsNullOrWhiteSpace(password) || password.Length is < 4 or > 128 || password.StartsWith("replace_with_", StringComparison.Ordinal))
+            throw new InvalidOperationException("Set ADMIN_EMAIL and ADMIN_INITIAL_PASSWORD (4-128 characters) for first startup.");
         var account = new LoginAccount(email, "Admin", null, "");
         await using var insert = new MySqlCommand("INSERT INTO AdminAccount (Id,EmailAddress,PasswordHash) VALUES (1,@email,@hash) ON DUPLICATE KEY UPDATE Id=Id", connection);
         insert.Parameters.AddWithValue("@email", email);

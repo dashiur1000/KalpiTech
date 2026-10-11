@@ -20,6 +20,9 @@ sys.path.insert(0, str(ROOT / 'tests/data_import'))
 from test_import import ImportTests
 from test_auth import Client, TEST_PASSWORD, KALPI_PASSWORD
 
+# Synthetic short password exercises the approved four-character initialization.
+DEMO_ADMIN_PASSWORD = '4826'
+
 
 def free_port():
     with socket.socket() as sock:
@@ -53,7 +56,7 @@ def main():
         # Read the actual app compose definition without loading developer secrets.
         env_file = folder / 'test.env'
         env_file.write_text('MYSQL_PASSWORD=SyntheticDbPassword123\nMYSQL_ROOT_PASSWORD=SyntheticRootPassword123\n'
-                            'ADMIN_EMAIL=manager@example.test\nADMIN_INITIAL_PASSWORD=' + TEST_PASSWORD + '\n'
+                            'ADMIN_EMAIL=manager@example.test\nADMIN_INITIAL_PASSWORD=' + DEMO_ADMIN_PASSWORD + '\n'
                             'MAIL_ENABLED=false\nMAIL_API_KEY=\n', encoding='utf-8')
         config_command = ['docker','compose','--env-file',str(env_file),'-f',str(ROOT / 'compose.yaml'),
                           '-f',str(ROOT / 'compose.app.yaml'),'config','--format','json']
@@ -93,7 +96,7 @@ def main():
             compose('up','-d','--wait','--wait-timeout','180')
             base = f'http://127.0.0.1:{app_port}'
             manager = Client(base)
-            assert manager.login()[0] == 200
+            assert manager.login(password=DEMO_ADMIN_PASSWORD)[0] == 200
             assert expect(manager, '/api/election')['state'] == 'Preparation'
             upload_context = SimpleNamespace(client=manager, base=base)
             assert ImportTests.upload(upload_context, files=(stations,people))[0] == 200
@@ -148,6 +151,7 @@ def main():
             compose('up','-d','--wait','--wait-timeout','180')
             assert expect(manager, '/api/statistics')['overall']['voted'] == 3  # Existing cookie still works.
             assert Client(base).login('2',KALPI_PASSWORD)[0] == 200
+            assert Client(base).login(password=DEMO_ADMIN_PASSWORD)[0] == 200
             connection = pymysql.connect(host='127.0.0.1',port=db_port,user='kalpitech',
                                          password='SyntheticDbPassword123',database='VotesDb',autocommit=True)
             with connection.cursor() as cursor:
