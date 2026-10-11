@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>קלפי טק</title>
+  <link rel="stylesheet" href="/css/site.css?v=11.1">
+  <script src="/js/app.js?v=11.1" defer></script>
+</head>
+<body>
+<main>
+  <header><h1>קלפי טק</h1><p>מערכת לניהול רישום הצבעות</p></header>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section id="login" hidden>
+    <h2>התחברות</h2>
+    <form id="login-form">
+      <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
+      <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required>
+      <label for="password">סיסמה</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+      <button type="submit">התחברות</button>
+    </form>
+  </section>
+  <section id="account" hidden>
+    <h2 id="account-title"></h2>
+    <p id="account-name"></p>
+    <section aria-label="מצב הבחירות">
+      <h3>מצב הבחירות</h3>
+      <p id="election-status" role="status"></p>
+      <p id="election-times"></p>
+      <p id="election-window"></p>
+    </section>
+    <div id="poll-tools" hidden>
+      <section id="voter-search">
+        <h3>חיפוש בוחר</h3>
+        <form id="voter-form">
+          <label for="voter-id">מספר זהות</label>
+          <input id="voter-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required aria-describedby="voter-id-help">
+          <p id="voter-id-help">יש להזין תשע ספרות, כולל אפסים מובילים.</p>
+          <button type="submit">חיפוש בוחר</button>
+        </form>
+      </section>
+      <section id="voter-confirmation" hidden>
+        <h3 tabindex="-1" id="confirmation-title">אישור הצבעה</h3>
+        <p id="voter-name"></p>
+        <p id="voter-details"></p>
+        <p>מצביע זוהה! אנא הגש לו את מעטפת ההצבעה ולאחר הכנסתה לקלפי לחץ על אישור או ביטול במקרה שאינו חפץ להצביע כרגע.</p>
+        <p id="vote-availability" role="status"></p>
+        <button id="confirm-voter" type="button" disabled>אישור</button>
+        <button id="cancel-voter" type="button">ביטול</button>
+      </section>
+    </div>
+    <div id="admin-tools" hidden>
+      <div id="admin-menu">
+      <h3>הפעלת יום הבחירות — קביעת מועדים</h3>
+      <form id="election-form">
+        <label for="election-start">מועד תחילת הבחירות (שעון ישראל)</label>
+        <input id="election-start" type="datetime-local" required>
+        <label for="election-end">מועד סיום הבחירות (שעון ישראל)</label>
+        <input id="election-end" type="datetime-local" required>
+        <p>המעברים אוטומטיים לפי שעון השרת. לאחר ההתחלה לא ניתן לשנות את המועדים.</p>
+        <button id="save-election" type="submit">שמירת מועדי הבחירות</button>
+      </form>
+      <button id="open-import" type="button">עדכון נתונים לבסיס הנתונים</button>
+      <section id="import-panel" hidden>
+        <h3>בחירת קובצי CSV</h3>
+        <p>קובצי UTF-8 בלבד. בקובץ הקלפיות PasswordHash מכיל את הסיסמאות; השרת שומר גיבובים בלבד. כל הבוחרים בקובץ חייבים להיות ללא הצבעה.</p>
+        <form id="import-form">
+          <label for="kalpi-file">קובץ קלפיות — kalpi.csv (עד 5 MB)</label>
+          <input id="kalpi-file" type="file" accept=".csv" required>
+          <label for="people-file">קובץ בוחרים — people.csv (עד 20 MB)</label>
+          <input id="people-file" type="file" accept=".csv" required>
+          <button type="submit">בדיקה וטעינת הנתונים</button>
+        </form>
+        <button id="cancel-import" type="button">ביטול טעינה</button>
+      </section>
+      <button id="open-envelopes" type="button" disabled>הזנת מעטפות כפולות</button>
+      <p>הזנת מעטפות כפולות זמינה מתחילת הבחירות ולמשך 36 שעות. יש לשמור מועדי התחלה וסיום תקינים; הכפתור יופעל אוטומטית בתחילת החלון.</p>
+      <button id="open-statistics" type="button">צפייה בנתונים</button>
+      </div>
+      <section id="envelope-panel" hidden>
+        <h3>הזנת מעטפות כפולות</h3>
+        <p id="envelope-availability" role="status"></p>
+        <form id="envelope-search-form">
+          <label for="envelope-id">מספר זהות מתוך המעטפה</label>
+          <input id="envelope-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required>
+          <button id="search-envelope" type="submit" disabled>חיפוש בוחר למעטפה כפולה</button>
+        </form>
+        <form id="envelope-confirm-form" hidden>
+          <h4 id="envelope-confirm-title" tabindex="-1">אישור מעטפה כפולה</h4>
+          <p id="envelope-voter-name"></p>
+          <p id="envelope-voter-details"></p>
+          <p>מקום הרישום: 0000 — ועדת הבחירות. בדוק את פרטי הבוחר לפני אישור הרישום.</p>
+          <button id="confirm-envelope" type="submit" disabled>אישור מעטפה כפולה</button>
+        </form>
+        <button id="cancel-envelope" type="button">ביטול וחזרה למסך הוועדה</button>
+      </section>
+      <section id="statistics-panel" hidden>
+        <h3 tabindex="-1" id="statistics-title">נתוני השתתפות</h3>
+        <p id="statistics-status" role="status" aria-live="polite"></p>
+        <h4>נתונים כלליים</h4>
+        <div id="overall-statistics" class="statistics-card"></div>
+        <h4>נתונים לפי עיר</h4>
+        <label for="statistics-city">חיפוש עיר</label>
+        <input id="statistics-city" type="search" list="statistics-cities" autocomplete="off" maxlength="100" aria-describedby="statistics-city-help">
+        <datalist id="statistics-cities"></datalist>
+        <p id="statistics-city-help">בחר עיר מתוך ההשלמה. ההשתתפות נספרת לפי הקלפי שאליה הבוחר משויך.</p>
+        <p id="statistics-city-message" role="status"></p>
+        <div id="city-statistics" class="statistics-card" hidden></div>
+        <button id="close-statistics" type="button">חזרה למסך הוועדה</button>
+      </section>
+    </div>
+    <button id="logout" type="button">יציאה</button>
+  </section>
+  <noscript>יש להפעיל JavaScript בדפדפן כדי להשתמש במערכת.</noscript>
+</main>
+<dialog id="duplicate-vote-dialog" aria-labelledby="duplicate-vote-title" aria-describedby="duplicate-vote-message">
+  <h2 id="duplicate-vote-title">הצבעה כפולה</h2>
+  <p id="duplicate-vote-message"></p>
+  <form method="dialog"><button autofocus>סגירה</button></form>
+</dialog>
+</body>
+</html>

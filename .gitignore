@@ -482,3 +482,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Local Python runtime and caches
+.venv/
+__pycache__/
+*.pyc
+.local/

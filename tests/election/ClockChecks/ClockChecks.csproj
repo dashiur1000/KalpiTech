@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/KalpiTech.Api/Models/ElectionSchedule.cs" Link="ElectionSchedule.cs" />
+    <Compile Include="../../../src/KalpiTech.Api/Services/IsraelTime.cs" Link="IsraelTime.cs" />
+  </ItemGroup>
+</Project>
