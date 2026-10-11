@@ -1,0 +1,18 @@
+# Only source required to build the application enters the image context.
+**
+!Dockerfile
+!global.json
+!src/
+!src/KalpiTech.Api/
+!src/KalpiTech.Api/**
+!tools/
+!tools/data_loader/
+!tools/data_loader/**
+!docker/
+!docker/**
+**/bin/**
+**/obj/**
+**/__pycache__/**
+**/*.pyc
+**/.env
+**/.local/**

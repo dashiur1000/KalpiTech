@@ -31,7 +31,7 @@ public sealed class ElectionStore(DatabaseConnectionFactory connections, TimePro
         return null;
     }
 
-    private static async Task<ElectionSchedule> ReadRowAsync(MySqlConnection connection,
+    internal static async Task<ElectionSchedule> ReadRowAsync(MySqlConnection connection,
         MySqlTransaction? transaction, CancellationToken token)
     {
         await using var command = new MySqlCommand(

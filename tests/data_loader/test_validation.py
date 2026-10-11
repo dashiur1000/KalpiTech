@@ -35,6 +35,22 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(dataset.kalpi, [(1, "Regular", "בית שמש", "ספרייה", "רחוב 1")])
         self.assertEqual(dataset.people, [("001234567", 1, "יוסף", "אברג'יל", None)])
 
+    def test_password_column_is_supported_and_validated_without_entering_dataset(self):
+        self.write_files()
+        columns = sorted(KALPI_COLUMNS)
+        row = {key:value for key,value in self.kalpi[0].items() if key != 'PasswordHash'}
+        for password, valid in [('Synthetic,"Password-123',True),('0123456789',True),('123456789',False),('short',False),(' '*12,False),('SyntheticPassword\n123',False)]:
+            with (self.path/'kalpi.csv').open('w',encoding='utf-8-sig',newline='') as file:
+                writer = csv.DictWriter(file,fieldnames=columns)
+                writer.writeheader()
+                writer.writerow(dict(row,PasswordHash=password))
+            if valid:
+                dataset = self.validate()
+                self.assertEqual(dataset.kalpi,[(1,'Regular','בית שמש','ספרייה','רחוב 1')])
+                self.assertNotIn(password,str(dataset))
+            else:
+                with self.assertRaises(ValidationError): self.validate()
+
     def test_duplicate_identities(self):
         self.people.append(dict(self.people[0]))
         self.write_files()

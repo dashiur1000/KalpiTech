@@ -45,25 +45,4 @@ public sealed class AuthController(AccountStore accounts, PasswordHasher<LoginAc
         return Ok(new { message = "יצאת מהמערכת." });
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpPost("admin-password")]
-    public async Task<IActionResult> ChangeAdminPassword(ChangeAdminPasswordRequest request, CancellationToken token)
-    {
-        var account = await accounts.FindAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!, token);
-        if (account is null || hasher.VerifyHashedPassword(account, account.PasswordHash, request.CurrentPassword) == PasswordVerificationResult.Failed)
-            return BadRequest(new { message = "סיסמת המנהל הנוכחית אינה נכונה." });
-        if (!await accounts.ChangeAdminPasswordAsync(account, request.NewPassword, token))
-            return Conflict(new { message = "הסיסמה השתנתה במקביל. יש להתחבר מחדש." });
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return Ok(new { message = "סיסמת המנהל הוחלפה בהצלחה. יש להתחבר מחדש." });
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpPost("kalpi-password")]
-    public async Task<IActionResult> SetKalpiPassword(SetKalpiPasswordRequest request, CancellationToken token)
-    {
-        if (!await accounts.SetKalpiPasswordAsync(request.KalpiId, request.NewPassword, token))
-            return NotFound(new { message = "מספר הקלפי אינו במאגר." });
-        return Ok(new { message = "סיסמת הקלפי נשמרה בהצלחה." });
-    }
 }

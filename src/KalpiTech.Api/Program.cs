@@ -7,22 +7,38 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--import-kalpi-passwords").ToArray());
 // Console logging works locally without permission to write to Windows Event Log.
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Services.AddSingleton<DatabaseConnectionFactory>();
 builder.Services.AddSingleton<DatabaseProbe>();
 builder.Services.AddScoped<AccountStore>();
+builder.Services.AddScoped<KalpiPasswordImporter>();
 builder.Services.AddScoped<VoterStore>();
+builder.Services.AddScoped<VoteStore>();
 builder.Services.AddScoped<ElectionStore>();
+builder.Services.AddScoped<StatisticsStore>();
+VoteConfirmationEmail.ValidateConfiguration(builder.Configuration);
+builder.Services.AddHttpClient<VoteConfirmationEmail>(client =>
+{
+    client.BaseAddress = new Uri("https://api.brevo.com/v3/");
+    // Integration tests may use only a loopback emulator, never a replacement external endpoint.
+    if (builder.Environment.IsEnvironment("Testing") && builder.Configuration["Mail:TestBaseUrl"] is { } testUrl)
+    {
+        var uri = new Uri(testUrl);
+        if (!uri.IsLoopback || uri.Scheme != "http") throw new InvalidOperationException("Email test endpoint must be local HTTP.");
+        client.BaseAddress = uri;
+    }
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AccountCookies>();
 builder.Services.AddSingleton<PasswordHasher<LoginAccount>>();
 // MVC's built-in CSRF filter needs the services supplied by AddControllersWithViews.
 builder.Services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()))
     .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = _ =>
-        new BadRequestObjectResult(new { message = "יש למלא את השדות הנדרשים. סיסמה חדשה צריכה להכיל 12 עד 128 תווים." }));
+        new BadRequestObjectResult(new { message = "יש למלא את השדות הנדרשים בצורה תקינה." }));
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
@@ -48,10 +64,30 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+var importOnly = args.Contains("--import-kalpi-passwords", StringComparer.Ordinal);
 // Validate required configuration at startup rather than on the first request.
 _ = app.Services.GetRequiredService<DatabaseProbe>();
 using (var scope = app.Services.CreateScope())
+{
     await scope.ServiceProvider.GetRequiredService<AccountStore>().InitializeAdminAsync(builder.Configuration, CancellationToken.None);
+    var passwordCsv = builder.Configuration["KalpiPasswords:Path"]
+        ?? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", ".local", "import", "kalpi.csv"));
+    await using var importConnection = scope.ServiceProvider.GetRequiredService<DatabaseConnectionFactory>().Create();
+    await importConnection.OpenAsync();
+    await using var importState = new MySqlCommand("SELECT COUNT(*) FROM DataImportState", importConnection);
+    var uploadedDataset = Convert.ToInt32(await importState.ExecuteScalarAsync()) > 0;
+    if (uploadedDataset && !importOnly)
+        app.Logger.LogInformation("Uploaded dataset preserved, including station passwords.");
+    else if (File.Exists(passwordCsv))
+    {
+        var changed = await scope.ServiceProvider.GetRequiredService<KalpiPasswordImporter>().ImportAsync(passwordCsv, CancellationToken.None);
+        app.Logger.LogInformation("Kalpi password import completed. Changed accounts: {Count}.", changed);
+    }
+    else if (importOnly) throw new InvalidOperationException("חסר קובץ הקלפיות המקומי לטעינת סיסמאות.");
+    else app.Logger.LogInformation("Kalpi password CSV is absent; existing station passwords were preserved.");
+}
+// Local one-shot import: no HTTP listener and no reset of existing accounts or votes.
+if (importOnly) return;
 
 app.Use(async (context, next) =>
 {

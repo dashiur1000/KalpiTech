@@ -16,7 +16,7 @@ def bootstrap(connection, kalpi_path: Path, people_path: Path) -> tuple[str, int
             schedule = cursor.fetchone()
             if schedule is None:
                 raise ValidationError("חסרה רשומת הגדרות הבחירות. הרץ את הקמת הסכמה.")
-            cursor.execute("SELECT COUNT(*) FROM Kalpi")
+            cursor.execute("SELECT COUNT(*) FROM Kalpi WHERE KalpiId>0")
             kalpi_count = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(*) FROM People")
             people_count = cursor.fetchone()[0]

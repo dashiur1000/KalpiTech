@@ -16,7 +16,7 @@ public sealed class DatabaseConnectionFactory
             throw new InvalidOperationException("MYSQL_PORT must be between 1 and 65535.");
         connectionString = new MySqlConnectionStringBuilder
         {
-            Server = "127.0.0.1", Port = port,
+            Server = configuration["MYSQL_HOST"] ?? "127.0.0.1", Port = port,
             Database = configuration["MYSQL_DATABASE"] ?? "VotesDb",
             UserID = configuration["MYSQL_USER"] ?? "kalpitech", Password = password,
             ConnectionTimeout = 3, DefaultCommandTimeout = 5, DateTimeKind = MySqlDateTimeKind.Utc

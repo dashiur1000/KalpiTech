@@ -1,0 +1,32 @@
+# Explicit opt-in: existing local .NET workflow remains available.
+services:
+  api:
+    build: .
+    image: kalpitech-api:local
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: VotesDb
+      MYSQL_USER: kalpitech
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:?Set ADMIN_INITIAL_PASSWORD in .env}
+      Mail__Enabled: ${MAIL_ENABLED:-false}
+      Mail__ApiKey: ${MAIL_API_KEY:-}
+      Mail__SenderEmail: ${MAIL_SENDER_EMAIL:-vahadathabchirot@gmail.com}
+      Mail__SenderName: ${MAIL_SENDER_NAME:-ועדת הבחירות}
+    ports:
+      - "127.0.0.1:${APP_PORT:-5080}:8080"
+    volumes:
+      - app_state:/workspace/.local
+      - ./Data:/workspace/Data:ro
+      - ./.local/import:/workspace/.local/import:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/opt/venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/db', timeout=3).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s

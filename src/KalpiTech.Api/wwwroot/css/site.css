@@ -8,8 +8,20 @@ input { width: 100%; padding: 10px; border: 1px solid #8a9ab0; border-radius: 5p
 button { margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 5px; background: #174e80; color: white; font: inherit; cursor: pointer; }
 button:disabled { opacity: .6; cursor: wait; }
 :focus-visible { outline: 3px solid #da9300; outline-offset: 3px; }
-#message:not(:empty) { padding: 12px; background: #e5edf7; border-inline-start: 4px solid #174e80; }
+#message:not(:empty) { position: sticky; top: 12px; z-index: 10; padding: 12px; background: #e5edf7; border-inline-start: 4px solid #174e80; }
+#message[data-kind="success"]:not(:empty) { background: #e8f7ed; color: #14532d; border-color: #15803d; }
+#message[data-kind="error"]:not(:empty) { background: #fff0f0; color: #7f1d1d; border-color: #b91c1c; }
+#duplicate-vote-dialog { width: min(460px, calc(100% - 32px)); border: 2px solid #b91c1c; border-radius: 12px; padding: 24px; color: #7f1d1d; background: #fff0f0; }
+#duplicate-vote-dialog::backdrop { background: #17233a80; }
+#duplicate-vote-dialog h2 { margin-top: 0; }
+#duplicate-vote-dialog form { margin-bottom: 0; }
 form { margin-bottom: 24px; }
 [hidden] { display: none !important; }
 .stage-note { padding: 12px; background: #fff3cd; border-inline-start: 4px solid #b87800; }
+.statistics-card { padding: 16px; background: #f1f5f9; border-radius: 8px; }
+.statistics-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+.statistics-card dd { margin: 0; font-weight: bold; text-align: end; }
+.participation-bar { display: flex; height: 24px; background: #cbd5e1; border-radius: 6px; overflow: hidden; }
+.participation-voted { background: #174e80; }
+.participation-legend { margin-bottom: 0; font-size: .95rem; }
 @media (max-width: 640px) { main { margin: 12px; padding: 20px; } }

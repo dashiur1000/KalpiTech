@@ -10,6 +10,9 @@ import unittest
 import urllib.error
 import urllib.request
 import uuid
+import base64
+import hashlib
+import struct
 from pathlib import Path
 import sys
 
@@ -89,7 +92,9 @@ class AuthTests(unittest.TestCase):
         env = os.environ.copy()
         env.update(MYSQL_USER="root", MYSQL_PASSWORD=settings["MYSQL_ROOT_PASSWORD"], MYSQL_DATABASE=cls.database,
                    ADMIN_EMAIL="manager@example.test", ADMIN_INITIAL_PASSWORD=TEST_PASSWORD,
+                   KalpiPasswords__Path=str(Path(cls.temp.name) / "kalpi.csv"),
                    DataProtection__KeyPath=str(Path(cls.temp.name) / "keys"))
+        env['Mail__Enabled'] = 'false' # Ordinary regression tests must never send external mail.
         cls.env = env
         cls.start_process()
         cls.addClassCleanup(cls.stop_process)
@@ -131,12 +136,19 @@ class AuthTests(unittest.TestCase):
         self.assertEqual(self.client.login()[0], 200)
 
     def set_station(self, station=1, password=KALPI_PASSWORD):
-        return self.client.request("/api/auth/kalpi-password", {"kalpiId": station, "newPassword": password})
+        # Synthetic fixture only: Identity V3 hash, verified by ASP.NET login in tests.
+        salt = os.urandom(16)
+        subkey = hashlib.pbkdf2_hmac('sha512',password.encode('utf-8'),salt,100000,32)
+        password_hash = base64.b64encode(b'\x01'+struct.pack('>III',2,100000,len(salt))+salt+subkey).decode('ascii')
+        with self.connection.cursor() as cursor:
+            cursor.execute('UPDATE Kalpi SET PasswordHash=%s WHERE KalpiId=%s',(password_hash,station))
+        self.connection.commit()
+        return 200, {}, {}
 
     def test_anonymous_is_401_and_password_api_is_protected(self):
         self.assertEqual(self.client.request("/api/auth/me")[0], 401)
         self.client.csrf()
-        self.assertEqual(self.set_station()[0], 401)
+        self.assertEqual(self.client.request('/api/auth/kalpi-password',{'kalpiId':1,'newPassword':KALPI_PASSWORD})[0],404)
 
     def test_wrong_login_and_station_without_password(self):
         self.assertEqual(self.client.login(password="wrong")[0], 401)
@@ -153,10 +165,8 @@ class AuthTests(unittest.TestCase):
         self.assertNotIn(TEST_PASSWORD, auth_cookie.value)
         self.assertNotEqual(self.initial_hash, TEST_PASSWORD)
 
-    def test_csrf_is_required_for_login_and_password_change(self):
+    def test_csrf_is_required_for_login(self):
         self.assertEqual(self.client.request("/api/auth/login", {"identifier": "manager@example.test", "password": TEST_PASSWORD}, csrf=False)[0], 400)
-        self.admin()
-        self.assertEqual(self.client.request("/api/auth/kalpi-password", {"kalpiId": 1, "newPassword": KALPI_PASSWORD}, csrf=False)[0], 400)
 
     def test_regular_and_accessible_roles_come_from_database(self):
         self.admin()
@@ -167,24 +177,28 @@ class AuthTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(account["role"], role)
             self.assertEqual(account["kalpiId"], station)
-            self.assertEqual(client.request("/api/auth/kalpi-password", {"kalpiId": 3, "newPassword": KALPI_PASSWORD})[0], 403)
-            self.assertEqual(client.request("/api/auth/admin-password", {"currentPassword": TEST_PASSWORD, "newPassword": KALPI_PASSWORD})[0], 403)
+            self.assertEqual(client.request("/api/auth/kalpi-password", {"kalpiId": 3, "newPassword": KALPI_PASSWORD})[0], 404)
+            self.assertEqual(client.request("/api/auth/admin-password", {"currentPassword": TEST_PASSWORD, "newPassword": KALPI_PASSWORD})[0], 404)
 
-    def test_short_password_and_missing_station(self):
+    def test_manager_password_routes_are_removed(self):
         self.admin()
-        self.assertEqual(self.set_station(password="short")[0], 400)
-        self.assertEqual(self.set_station(station=99)[0], 404)
+        self.assertEqual(self.client.request('/api/auth/kalpi-password',{'kalpiId':1,'newPassword':KALPI_PASSWORD})[0],404)
+        self.assertEqual(self.client.request('/api/auth/admin-password',{'currentPassword':TEST_PASSWORD,'newPassword':KALPI_PASSWORD})[0],404)
 
-    def test_admin_change_requires_current_password_and_invalidates_old_sessions(self):
+    def test_admin_email_change_invalidates_old_sessions_without_changing_password(self):
         self.admin()
         other = Client(self.base)
         self.assertEqual(other.login()[0], 200)
-        self.assertEqual(self.client.request("/api/auth/admin-password", {"currentPassword": "wrong", "newPassword": KALPI_PASSWORD})[0], 400)
-        self.assertEqual(self.client.request("/api/auth/admin-password", {"currentPassword": TEST_PASSWORD, "newPassword": KALPI_PASSWORD})[0], 200)
-        self.assertEqual(self.client.request("/api/auth/me")[0], 401)
-        self.assertEqual(other.request("/api/auth/me")[0], 401)
-        self.assertEqual(Client(self.base).login(password=TEST_PASSWORD)[0], 401)
-        self.assertEqual(Client(self.base).login(password=KALPI_PASSWORD)[0], 200)
+        try:
+            with self.connection.cursor() as cursor: cursor.execute("UPDATE AdminAccount SET EmailAddress='changed@example.test' WHERE Id=1")
+            self.connection.commit()
+            self.assertEqual(self.client.request("/api/auth/me")[0], 401)
+            self.assertEqual(other.request("/api/auth/me")[0], 401)
+            self.assertEqual(Client(self.base).login()[0],401)
+            self.assertEqual(Client(self.base).login('changed@example.test')[0],200)
+        finally:
+            with self.connection.cursor() as cursor: cursor.execute("UPDATE AdminAccount SET EmailAddress='manager@example.test' WHERE Id=1")
+            self.connection.commit()
 
     def test_station_password_change_invalidates_existing_cookie(self):
         self.admin()
@@ -212,13 +226,10 @@ class AuthTests(unittest.TestCase):
 
     def test_restart_preserves_changed_password_and_cookie(self):
         self.admin()
-        self.assertEqual(self.client.request("/api/auth/admin-password", {"currentPassword": TEST_PASSWORD, "newPassword": KALPI_PASSWORD})[0], 200)
-        self.assertEqual(self.client.login(password=KALPI_PASSWORD)[0], 200)
         self.stop_process()
         type(self).start_process()
         self.assertEqual(self.client.request("/api/auth/me")[0], 200)
-        self.assertEqual(Client(self.base).login(password=TEST_PASSWORD)[0], 401)
-        self.assertEqual(Client(self.base).login(password=KALPI_PASSWORD)[0], 200)
+        self.assertEqual(Client(self.base).login()[0], 200)
 
 
 if __name__ == "__main__": unittest.main()

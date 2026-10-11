@@ -44,24 +44,4 @@ public sealed class AccountStore(DatabaseConnectionFactory connections, Password
         await insert.ExecuteNonQueryAsync(token);
     }
 
-    public async Task<bool> ChangeAdminPasswordAsync(LoginAccount account, string newPassword, CancellationToken token)
-    {
-        await using var connection = connections.Create();
-        await connection.OpenAsync(token);
-        await using var command = new MySqlCommand("UPDATE AdminAccount SET PasswordHash=@hash WHERE Id=1 AND PasswordHash=@previous", connection);
-        command.Parameters.AddWithValue("@hash", hasher.HashPassword(account, newPassword));
-        command.Parameters.AddWithValue("@previous", account.PasswordHash);
-        return await command.ExecuteNonQueryAsync(token) == 1;
-    }
-
-    public async Task<bool> SetKalpiPasswordAsync(int kalpiId, string newPassword, CancellationToken token)
-    {
-        await using var connection = connections.Create();
-        await connection.OpenAsync(token);
-        var account = new LoginAccount(kalpiId.ToString(CultureInfo.InvariantCulture), "", kalpiId, "");
-        await using var command = new MySqlCommand("UPDATE Kalpi SET PasswordHash=@hash WHERE KalpiId=@id", connection);
-        command.Parameters.AddWithValue("@hash", hasher.HashPassword(account, newPassword));
-        command.Parameters.AddWithValue("@id", kalpiId);
-        return await command.ExecuteNonQueryAsync(token) == 1;
-    }
 }

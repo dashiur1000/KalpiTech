@@ -20,18 +20,19 @@ KALPI_COLUMNS = {"KalpiId", "City", "Place", "Address", "KalpiType", "PasswordHa
 PEOPLE_COLUMNS = {"Id", "KalpiId", "FirstName", "LastName", "Voted", "EmailAddress", "VotedAt", "VotedIn"}
 
 
-def read_rows(path: Path, columns: set[str]) -> list[dict[str, str]]:
+def read_rows(path: Path, columns: set[str], alternate_columns: set[str] | None = None) -> list[dict[str, str]]:
     try:
         with path.open(encoding="utf-8-sig", newline="") as file:
             reader = csv.DictReader(file, strict=True)
             header = reader.fieldnames or []
-            if len(header) != len(columns) or set(header) != columns:
+            valid_columns = set(header) == columns or (alternate_columns is not None and set(header) == alternate_columns)
+            if len(header) != len(columns) or not valid_columns:
                 raise ValidationError(f"{path.name}: מבנה העמודות אינו תקין.")
             rows = []
             for row in reader:
                 if None in row or any(value is None for value in row.values()):
                     raise ValidationError(f"{path.name}, שורה {reader.line_num}: מספר השדות אינו תקין.")
-                rows.append({key: value.strip() for key, value in row.items()})
+                rows.append({key: value if key == "PasswordHash" else value.strip() for key, value in row.items()})
             if not rows:
                 raise ValidationError(f"{path.name}: הקובץ אינו מכיל נתונים.")
             return rows
@@ -66,7 +67,11 @@ def validate_files(kalpi_path: Path, people_path: Path) -> Dataset:
         station_ids.add(identifier)
         if row["KalpiType"] not in {"Regular", "Accessible"}:
             raise ValidationError(f"{location}: סוג הקלפי אינו תקין.")
-        # CSV passwords are ignored. The manager will assign real password hashes.
+        if (not 10 <= len(row["PasswordHash"]) <= 128 or not row["PasswordHash"].strip()
+                or any(ord(character) < 32 or ord(character) == 127 for character in row["PasswordHash"])):
+            raise ValidationError(f"{location}: סיסמת קלפי חייבת להכיל 10 עד 128 תווים ללא תווי בקרה.")
+        # CSV PasswordHash contains plaintext by user decision; only C# hashes it.
+        # Python loads station metadata, never passwords.
         kalpi.append((identifier, row["KalpiType"],
                       text(row["City"], "City", 100, location),
                       text(row["Place"], "Place", 255, location),

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def connection_options() -> dict:
     # Process variables take precedence; only explicitly supported settings are read.
-    settings = {"MYSQL_PORT": "3307", "MYSQL_DATABASE": "VotesDb", "MYSQL_USER": "kalpitech"}
+    settings = {"MYSQL_HOST": "127.0.0.1", "MYSQL_PORT": "3307", "MYSQL_DATABASE": "VotesDb", "MYSQL_USER": "kalpitech"}
     env_path = ROOT / ".env"
     if env_path.exists():
         for line in env_path.read_text(encoding="utf-8-sig").splitlines():
@@ -23,7 +23,7 @@ def connection_options() -> dict:
                 key, value = line.split("=", 1)
                 if key in {"MYSQL_PASSWORD", "MYSQL_PORT"}:
                     settings[key] = value.strip()
-    for key in ("MYSQL_PASSWORD", "MYSQL_PORT", "MYSQL_DATABASE", "MYSQL_USER"):
+    for key in ("MYSQL_HOST", "MYSQL_PASSWORD", "MYSQL_PORT", "MYSQL_DATABASE", "MYSQL_USER"):
         if key in os.environ:
             settings[key] = os.environ[key]
     if not settings.get("MYSQL_PASSWORD"):
@@ -34,7 +34,7 @@ def connection_options() -> dict:
             raise ValueError()
     except ValueError as error:
         raise ValidationError("MYSQL_PORT חייב להיות מספר בין 1 ל-65535.") from error
-    return dict(host="127.0.0.1", port=port, user=settings["MYSQL_USER"],
+    return dict(host=settings["MYSQL_HOST"], port=port, user=settings["MYSQL_USER"],
                 password=settings["MYSQL_PASSWORD"], database=settings["MYSQL_DATABASE"],
                 charset="utf8mb4", autocommit=False, connect_timeout=5,
                 read_timeout=30, write_timeout=30, init_command="SET time_zone = '+00:00'")
@@ -44,9 +44,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate CSV or bootstrap an empty VotesDb.")
     parser.add_argument("--validate", action="store_true", help="Validate only; never connect to MySQL.")
     parser.add_argument("--data-dir", type=Path, default=ROOT / "Data")
+    parser.add_argument("--kalpi-file", type=Path, help="Optional private station CSV; PasswordHash contains password inputs.")
     args = parser.parse_args()
     try:
-        kalpi_path = args.data_dir / "kalpi.csv"
+        kalpi_path = args.kalpi_file or args.data_dir / "kalpi.csv"
         people_path = args.data_dir / "people.csv"
         if args.validate:
             dataset = validate_files(kalpi_path, people_path)
