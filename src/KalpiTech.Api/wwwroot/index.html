@@ -3,121 +3,261 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>קלפי טק</title>
-  <link rel="stylesheet" href="/css/site.css?v=11.1">
-  <script src="/js/app.js?v=11.1" defer></script>
+  <title>קלפי טק — ועדת הבחירות המרכזית לכנסת</title>
+  <link rel="icon" type="image/svg+xml" href="/images/cec-logo.svg">
+  <link rel="alternate icon" type="image/jpeg" href="/images/logo.jpg">
+  <link rel="stylesheet" href="/css/site.css?v=13.0">
+  <script src="/js/app.js?v=13.0" defer></script>
 </head>
 <body>
-<main>
-  <header><h1>קלפי טק</h1><p>מערכת לניהול רישום הצבעות</p></header>
-  <p id="message" role="status" aria-live="polite"></p>
-  <section id="login" hidden>
-    <h2>התחברות</h2>
-    <form id="login-form">
-      <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
-      <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required>
-      <label for="password">סיסמה</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
-      <button type="submit">התחברות</button>
-    </form>
-  </section>
-  <section id="account" hidden>
-    <h2 id="account-title"></h2>
-    <p id="account-name"></p>
-    <section aria-label="מצב הבחירות">
-      <h3>מצב הבחירות</h3>
-      <p id="election-status" role="status"></p>
-      <p id="election-times"></p>
-      <p id="election-window"></p>
-    </section>
-    <div id="poll-tools" hidden>
-      <section id="voter-search">
-        <h3>חיפוש בוחר</h3>
-        <form id="voter-form">
-          <label for="voter-id">מספר זהות</label>
-          <input id="voter-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required aria-describedby="voter-id-help">
-          <p id="voter-id-help">יש להזין תשע ספרות, כולל אפסים מובילים.</p>
-          <button type="submit">חיפוש בוחר</button>
-        </form>
-      </section>
-      <section id="voter-confirmation" hidden>
-        <h3 tabindex="-1" id="confirmation-title">אישור הצבעה</h3>
-        <p id="voter-name"></p>
-        <p id="voter-details"></p>
-        <p>מצביע זוהה! אנא הגש לו את מעטפת ההצבעה ולאחר הכנסתה לקלפי לחץ על אישור או ביטול במקרה שאינו חפץ להצביע כרגע.</p>
-        <p id="vote-availability" role="status"></p>
-        <button id="confirm-voter" type="button" disabled>אישור</button>
-        <button id="cancel-voter" type="button">ביטול</button>
-      </section>
-    </div>
-    <div id="admin-tools" hidden>
-      <div id="admin-menu">
-      <h3>הפעלת יום הבחירות — קביעת מועדים</h3>
-      <form id="election-form">
-        <label for="election-start">מועד תחילת הבחירות (שעון ישראל)</label>
-        <input id="election-start" type="datetime-local" required>
-        <label for="election-end">מועד סיום הבחירות (שעון ישראל)</label>
-        <input id="election-end" type="datetime-local" required>
-        <p>המעברים אוטומטיים לפי שעון השרת. לאחר ההתחלה לא ניתן לשנות את המועדים.</p>
-        <button id="save-election" type="submit">שמירת מועדי הבחירות</button>
-      </form>
-      <button id="open-import" type="button">עדכון נתונים לבסיס הנתונים</button>
-      <section id="import-panel" hidden>
-        <h3>בחירת קובצי CSV</h3>
-        <p>קובצי UTF-8 בלבד. בקובץ הקלפיות PasswordHash מכיל את הסיסמאות; השרת שומר גיבובים בלבד. כל הבוחרים בקובץ חייבים להיות ללא הצבעה.</p>
-        <form id="import-form">
-          <label for="kalpi-file">קובץ קלפיות — kalpi.csv (עד 5 MB)</label>
-          <input id="kalpi-file" type="file" accept=".csv" required>
-          <label for="people-file">קובץ בוחרים — people.csv (עד 20 MB)</label>
-          <input id="people-file" type="file" accept=".csv" required>
-          <button type="submit">בדיקה וטעינת הנתונים</button>
-        </form>
-        <button id="cancel-import" type="button">ביטול טעינה</button>
-      </section>
-      <button id="open-envelopes" type="button" disabled>הזנת מעטפות כפולות</button>
-      <p>הזנת מעטפות כפולות זמינה מתחילת הבחירות ולמשך 36 שעות. יש לשמור מועדי התחלה וסיום תקינים; הכפתור יופעל אוטומטית בתחילת החלון.</p>
-      <button id="open-statistics" type="button">צפייה בנתונים</button>
+  <!-- Top Governmental Strip (bechirot.gov.il) -->
+  <aside class="gov-topbar" aria-label="סרגל ממשלתי">
+    <div class="gov-topbar-container">
+      <div class="gov-topbar-brand">
+        <a href="/" class="gov-emblem-link" aria-label="דף הבית של ועדת הבחירות המרכזית">
+          <img src="/images/cec-logo.svg" alt="סמל ועדת הבחירות המרכזית" class="gov-emblem-img" width="36" height="36">
+        </a>
+        <div>
+          <span class="gov-brand-title">מדינת ישראל</span>
+          <span class="gov-brand-sub">ועדת הבחירות המרכזית לכנסת</span>
+        </div>
       </div>
-      <section id="envelope-panel" hidden>
-        <h3>הזנת מעטפות כפולות</h3>
-        <p id="envelope-availability" role="status"></p>
-        <form id="envelope-search-form">
-          <label for="envelope-id">מספר זהות מתוך המעטפה</label>
-          <input id="envelope-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required>
-          <button id="search-envelope" type="submit" disabled>חיפוש בוחר למעטפה כפולה</button>
-        </form>
-        <form id="envelope-confirm-form" hidden>
-          <h4 id="envelope-confirm-title" tabindex="-1">אישור מעטפה כפולה</h4>
-          <p id="envelope-voter-name"></p>
-          <p id="envelope-voter-details"></p>
-          <p>מקום הרישום: 0000 — ועדת הבחירות. בדוק את פרטי הבוחר לפני אישור הרישום.</p>
-          <button id="confirm-envelope" type="submit" disabled>אישור מעטפה כפולה</button>
-        </form>
-        <button id="cancel-envelope" type="button">ביטול וחזרה למסך הוועדה</button>
-      </section>
-      <section id="statistics-panel" hidden>
-        <h3 tabindex="-1" id="statistics-title">נתוני השתתפות</h3>
-        <p id="statistics-status" role="status" aria-live="polite"></p>
-        <h4>נתונים כלליים</h4>
-        <div id="overall-statistics" class="statistics-card"></div>
-        <h4>נתונים לפי עיר</h4>
-        <label for="statistics-city">חיפוש עיר</label>
-        <input id="statistics-city" type="search" list="statistics-cities" autocomplete="off" maxlength="100" aria-describedby="statistics-city-help">
-        <datalist id="statistics-cities"></datalist>
-        <p id="statistics-city-help">בחר עיר מתוך ההשלמה. ההשתתפות נספרת לפי הקלפי שאליה הבוחר משויך.</p>
-        <p id="statistics-city-message" role="status"></p>
-        <div id="city-statistics" class="statistics-card" hidden></div>
-        <button id="close-statistics" type="button">חזרה למסך הוועדה</button>
-      </section>
+      <div class="gov-topbar-clock" id="gov-clock-widget">
+        <span class="gov-clock-label">🕒 שעון ישראל:</span>
+        <span id="live-clock">--:--:--</span>
+      </div>
     </div>
-    <button id="logout" type="button">יציאה</button>
-  </section>
-  <noscript>יש להפעיל JavaScript בדפדפן כדי להשתמש במערכת.</noscript>
-</main>
-<dialog id="duplicate-vote-dialog" aria-labelledby="duplicate-vote-title" aria-describedby="duplicate-vote-message">
-  <h2 id="duplicate-vote-title">הצבעה כפולה</h2>
-  <p id="duplicate-vote-message"></p>
-  <form method="dialog"><button autofocus>סגירה</button></form>
-</dialog>
+  </aside>
+
+  <!-- Page Header (bechirot.gov.il) -->
+  <header class="main-header-wrapper">
+    <div class="main-header-container">
+      <div class="header-brand-group">
+        <img src="/images/cec-logo.svg" alt="לוגו ועדת הבחירות המרכזית לכנסת" class="header-logo-image" width="72" height="72">
+        <div class="header-titles">
+          <h1>קלפי טק</h1>
+          <p class="subtitle">ועדת הבחירות המרכזית לכנסת — מערכת רישום וניהול הצבעות בזמן אמת</p>
+        </div>
+      </div>
+      <div class="header-badge" aria-hidden="true">
+        <span>CEC • בחירות לכנסת</span>
+      </div>
+    </div>
+    <div class="nav-accent-bar" aria-hidden="true"></div>
+  </header>
+
+  <main>
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <!-- SECTION: LOGIN -->
+    <section id="login" class="content-card" hidden>
+      <div class="login-logo-container">
+        <img src="/images/logo.jpg" alt="סמל המערכת" class="login-logo-img" width="82" height="82">
+      </div>
+      <div class="card-header">
+        <h2>התחברות למערכת</h2>
+        <p class="card-desc">כניסה מאובטחת עבור מנהלי קלפיות וועדת הבחירות</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
+          <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required placeholder="לדוגמה: 101 או vahadathabchirot@gmail.com">
+          <small class="field-hint">קלפיות מזינות מספר בלבד; מנהל הוועדה מזין את כתובת המייל המאושרת.</small>
+        </div>
+        <div class="form-group">
+          <label for="password">סיסמה</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="הזן את סיסמת ההתחברות">
+        </div>
+        <button type="submit" class="btn-primary btn-block">התחברות</button>
+      </form>
+    </section>
+
+    <!-- SECTION: ACCOUNT -->
+    <section id="account" class="content-card" hidden>
+      <div class="account-masthead">
+        <div class="account-identity">
+          <h2 id="account-title"></h2>
+          <p id="account-name"></p>
+        </div>
+      </div>
+
+      <section aria-label="מצב הבחירות" class="election-status-card">
+        <h3>מצב הבחירות</h3>
+        <div class="status-indicator-box">
+          <p id="election-status" role="status" class="status-pill"></p>
+          <p id="election-times" class="status-times"></p>
+          <p id="election-window" class="status-window"></p>
+        </div>
+      </section>
+
+      <!-- POLL TOOLS -->
+      <div id="poll-tools" hidden>
+        <section id="voter-search" class="section-card">
+          <h3>חיפוש בוחר</h3>
+          <form id="voter-form">
+            <div class="form-group">
+              <label for="voter-id">מספר זהות</label>
+              <div class="input-action-row">
+                <input id="voter-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required aria-describedby="voter-id-help" placeholder="הזן 9 ספרות ת.ז. (כולל אפסים מובילים)">
+                <button type="submit" class="btn-primary">חיפוש בוחר</button>
+              </div>
+              <p id="voter-id-help" class="field-hint">יש להזין תשע ספרות, כולל אפסים מובילים.</p>
+            </div>
+          </form>
+        </section>
+
+        <section id="voter-confirmation" class="section-card voter-confirm-card" hidden>
+          <h3 tabindex="-1" id="confirmation-title">אישור הצבעה</h3>
+          <div class="voter-details-box">
+            <p id="voter-name" class="voter-fullname"></p>
+            <p id="voter-details" class="voter-id-badge"></p>
+          </div>
+          <div class="instruction-banner">
+            <p>מצביע זוהה! אנא הגש לו את מעטפת ההצבעה ולאחר הכנסתה לקלפי לחץ על אישור או ביטול במקרה שאינו חפץ להצביע כרגע.</p>
+          </div>
+          <p id="vote-availability" role="status" class="availability-status"></p>
+          <div class="action-buttons-group">
+            <button id="confirm-voter" type="button" class="btn-success" disabled>אישור</button>
+            <button id="cancel-voter" type="button" class="btn-outline">ביטול</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ADMIN TOOLS -->
+      <div id="admin-tools" hidden>
+        <div id="admin-menu" class="admin-menu-card">
+          <h3>הפעלת יום הבחירות — קביעת מועדים</h3>
+          <form id="election-form" class="schedule-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="election-start">מועד תחילת הבחירות (שעון ישראל)</label>
+                <input id="election-start" type="datetime-local" required>
+              </div>
+              <div class="form-group">
+                <label for="election-end">מועד סיום הבחירות (שעון ישראל)</label>
+                <input id="election-end" type="datetime-local" required>
+              </div>
+            </div>
+            <p class="field-hint">המעברים אוטומטיים לפי שעון השרת. לאחר ההתחלה לא ניתן לשנות את המועדים.</p>
+            <button id="save-election" type="submit" class="btn-primary">שמירת מועדי הבחירות</button>
+          </form>
+
+          <div class="admin-actions-bar">
+            <button id="open-envelopes" type="button" class="btn-action" disabled>הזנת מעטפות כפולות</button>
+            <button id="open-statistics" type="button" class="btn-action">צפייה בנתונים</button>
+            <button id="open-import" type="button" class="btn-action btn-outline">עדכון נתונים לבסיס הנתונים</button>
+          </div>
+          <p class="field-hint">הזנת מעטפות כפולות זמינה מתחילת הבחירות ולמשך 36 שעות. יש לשמור מועדי התחלה וסיום תקינים; הכפתור יופעל אוטומטית בתחילת החלון.</p>
+
+          <section id="import-panel" class="sub-panel" hidden>
+            <h3>בחירת קובצי CSV</h3>
+            <p class="field-hint">קובצי UTF-8 בלבד. בקובץ הקלפיות PasswordHash מכיל את הסיסמאות; השרת שומר גיבובים בלבד. כל הבוחרים בקובץ חייבים להיות ללא הצבעה.</p>
+            <form id="import-form">
+              <div class="form-group">
+                <label for="kalpi-file">קובץ קלפיות — kalpi.csv (עד 5 MB)</label>
+                <input id="kalpi-file" type="file" accept=".csv" required>
+              </div>
+              <div class="form-group">
+                <label for="people-file">קובץ בוחרים — people.csv (עד 20 MB)</label>
+                <input id="people-file" type="file" accept=".csv" required>
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn-primary">בדיקה וטעינת הנתונים</button>
+                <button id="cancel-import" type="button" class="btn-outline">ביטול טעינה</button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <!-- ENVELOPE PANEL -->
+        <section id="envelope-panel" class="sub-panel" hidden>
+          <h3>הזנת מעטפות כפולות</h3>
+          <p id="envelope-availability" role="status" class="availability-status"></p>
+          <form id="envelope-search-form">
+            <div class="form-group">
+              <label for="envelope-id">מספר זהות מתוך המעטפה</label>
+              <div class="input-action-row">
+                <input id="envelope-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required placeholder="הזן 9 ספרות ת.ז.">
+                <button id="search-envelope" type="submit" class="btn-primary" disabled>חיפוש בוחר למעטפה כפולה</button>
+              </div>
+            </div>
+          </form>
+          <form id="envelope-confirm-form" class="envelope-confirm-box" hidden>
+            <h4 id="envelope-confirm-title" tabindex="-1">אישור מעטפה כפולה</h4>
+            <div class="voter-details-box">
+              <p id="envelope-voter-name" class="voter-fullname"></p>
+              <p id="envelope-voter-details" class="voter-id-badge"></p>
+            </div>
+            <div class="instruction-banner">
+              <p>מקום הרישום: 0000 — ועדת הבחירות. בדוק את פרטי הבוחר לפני אישור הרישום.</p>
+            </div>
+            <button id="confirm-envelope" type="submit" class="btn-success" disabled>אישור מעטפה כפולה</button>
+          </form>
+          <div class="btn-row">
+            <button id="cancel-envelope" type="button" class="btn-outline">ביטול וחזרה למסך הוועדה</button>
+          </div>
+        </section>
+
+        <!-- STATISTICS PANEL -->
+        <section id="statistics-panel" class="sub-panel" hidden>
+          <div class="panel-header">
+            <h3 tabindex="-1" id="statistics-title">נתוני השתתפות</h3>
+            <p id="statistics-status" role="status" aria-live="polite"></p>
+          </div>
+          <h4>נתונים כלליים</h4>
+          <div id="overall-statistics" class="statistics-card"></div>
+          <h4>נתונים לפי עיר</h4>
+          <div class="form-group">
+            <label for="statistics-city">חיפוש עיר</label>
+            <input id="statistics-city" type="search" list="statistics-cities" autocomplete="off" maxlength="100" aria-describedby="statistics-city-help" placeholder="הקלד שם עיר או בחר מהרשימה...">
+            <datalist id="statistics-cities"></datalist>
+            <p id="statistics-city-help" class="field-hint">בחר עיר מתוך ההשלמה. ההשתתפות נספרת לפי הקלפי שאליה הבוחר משויך.</p>
+          </div>
+          <p id="statistics-city-message" role="status"></p>
+          <div id="city-statistics" class="statistics-card" hidden></div>
+          <button id="close-statistics" type="button" class="btn-outline">חזרה למסך הוועדה</button>
+        </section>
+      </div>
+
+      <div class="account-footer-bar">
+        <button id="logout" type="button" class="btn-danger">יציאה</button>
+      </div>
+    </section>
+
+    <noscript>יש להפעיל JavaScript בדפדפן כדי להשתמש במערכת.</noscript>
+  </main>
+
+  <dialog id="duplicate-vote-dialog" aria-labelledby="duplicate-vote-title" aria-describedby="duplicate-vote-message">
+    <div class="dialog-icon" aria-hidden="true">⚠️</div>
+    <h2 id="duplicate-vote-title">הצבעה כפולה</h2>
+    <p id="duplicate-vote-message"></p>
+    <form method="dialog"><button autofocus class="btn-danger">סגירה</button></form>
+  </dialog>
+
+  <footer class="gov-footer">
+    <div class="gov-footer-content">
+      <img src="/images/cec-logo.svg" alt="סמל ועדת הבחירות המרכזית" class="gov-footer-logo" width="44" height="44">
+      <p>ועדת הבחירות המרכזית לכנסת | כל הזכויות שמורות למדינת ישראל</p>
+      <p class="gov-footer-sub">מערכת קלפי טק לניהול רישום הצבעות וטוהר הבחירות לכנסת (bechirot.gov.il)</p>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      function updateClock() {
+        var el = document.getElementById('live-clock');
+        if (!el) return;
+        try {
+          var now = new Date();
+          var timeStr = now.toLocaleTimeString('he-IL', { timeZone: 'Asia/Jerusalem', hour12: false });
+          el.textContent = timeStr;
+        } catch(e) {
+          el.textContent = new Date().toLocaleTimeString();
+        }
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+    })();
+  </script>
 </body>
 </html>

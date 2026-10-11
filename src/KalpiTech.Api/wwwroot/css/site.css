@@ -1,27 +1,851 @@
-* { box-sizing: border-box; }
-body { margin: 0; background: #f1f5f9; color: #17233a; font-family: Arial, sans-serif; line-height: 1.6; }
-main { max-width: 620px; margin: 40px auto; padding: 28px; background: white; border-radius: 12px; box-shadow: 0 4px 24px #17233a12; }
-h1 { color: #174e80; margin-bottom: 0; }
-header p { margin-top: 0; color: #526176; }
-label { display: block; margin-top: 12px; }
-input { width: 100%; padding: 10px; border: 1px solid #8a9ab0; border-radius: 5px; font: inherit; }
-button { margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 5px; background: #174e80; color: white; font: inherit; cursor: pointer; }
-button:disabled { opacity: .6; cursor: wait; }
-:focus-visible { outline: 3px solid #da9300; outline-offset: 3px; }
-#message:not(:empty) { position: sticky; top: 12px; z-index: 10; padding: 12px; background: #e5edf7; border-inline-start: 4px solid #174e80; }
-#message[data-kind="success"]:not(:empty) { background: #e8f7ed; color: #14532d; border-color: #15803d; }
-#message[data-kind="error"]:not(:empty) { background: #fff0f0; color: #7f1d1d; border-color: #b91c1c; }
-#duplicate-vote-dialog { width: min(460px, calc(100% - 32px)); border: 2px solid #b91c1c; border-radius: 12px; padding: 24px; color: #7f1d1d; background: #fff0f0; }
-#duplicate-vote-dialog::backdrop { background: #17233a80; }
-#duplicate-vote-dialog h2 { margin-top: 0; }
-#duplicate-vote-dialog form { margin-bottom: 0; }
-form { margin-bottom: 24px; }
-[hidden] { display: none !important; }
-.stage-note { padding: 12px; background: #fff3cd; border-inline-start: 4px solid #b87800; }
-.statistics-card { padding: 16px; background: #f1f5f9; border-radius: 8px; }
-.statistics-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
-.statistics-card dd { margin: 0; font-weight: bold; text-align: end; }
-.participation-bar { display: flex; height: 24px; background: #cbd5e1; border-radius: 6px; overflow: hidden; }
-.participation-voted { background: #174e80; }
-.participation-legend { margin-bottom: 0; font-size: .95rem; }
-@media (max-width: 640px) { main { margin: 12px; padding: 20px; } }
+/* =========================================================
+   KalpiTech — Central Elections Committee (CEC) Official Theme
+   Faithfully matched to https://www.bechirot.gov.il/home/
+   Palette: Knesset / CEC PurplePalette (#4B0940, #A61CF9, #F2ECF4)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Rubik:wght@400;500;600;700&display=swap');
+
+:root {
+  /* CEC / Bechirot.gov.il Purple Palette */
+  --cec-purple-dark: #4b0940;        /* Official primary title & header color */
+  --cec-purple-deep: #450e66;        /* Active button & dark gradient color */
+  --cec-purple-active: #a61cf9;      /* Brand bright violet accent & primary button */
+  --cec-purple-light: #f2ecf4;       /* Background tint & card secondary color */
+  --cec-purple-border: #e4d7e8;      /* Soft card border */
+  --cec-purple-shadow: rgba(75, 9, 64, 0.08);
+
+  --bg-page: #f8f6f9;
+  --card-bg: #ffffff;
+  
+  --text-title: #4b0940;
+  --text-main: #262626;
+  --text-secondary: #595959;
+  --text-muted: #737373;
+  
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #10b981;
+  
+  --error: #dc2626;
+  --error-bg: #fef2f2;
+  --error-border: #ef4444;
+  
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
+  --warning-border: #f59e0b;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: "Assistant", "Rubik", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+   TOP GOVERNMENTAL STRIP (Gov.il Style)
+   ========================================================= */
+
+.gov-topbar {
+  background-color: var(--cec-purple-dark);
+  color: #ffffff;
+  border-bottom: 2px solid var(--cec-purple-active);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gov-topbar-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 8px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gov-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gov-emblem-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.gov-emblem-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.gov-brand-title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.2px;
+  color: #ffffff;
+}
+
+.gov-brand-sub {
+  display: block;
+  font-size: 0.78rem;
+  color: #e0acff;
+}
+
+.gov-topbar-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.gov-clock-label {
+  color: #eed3ff;
+}
+
+#live-clock {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+/* =========================================================
+   MAIN HEADER (Matching bechirot.gov.il PageHeader)
+   ========================================================= */
+
+.main-header-wrapper {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--cec-purple-border);
+  box-shadow: 0 2px 6px rgba(75, 9, 64, 0.04);
+}
+
+.main-header-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-logo-image {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.header-titles h1 {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--cec-purple-dark);
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+}
+
+.header-titles .subtitle {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.header-badge {
+  background: var(--cec-purple-light);
+  color: var(--cec-purple-dark);
+  border: 1.5px solid var(--cec-purple-active);
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+}
+
+/* Navigation Accent Bar */
+.nav-accent-bar {
+  background: linear-gradient(90deg, var(--cec-purple-dark) 0%, var(--cec-purple-active) 100%);
+  height: 4px;
+  width: 100%;
+}
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+main {
+  flex: 1;
+  max-width: 920px;
+  width: 100%;
+  margin: 32px auto 56px;
+  padding: 0 24px;
+}
+
+.content-card {
+  background: var(--card-bg);
+  border: 1px solid var(--cec-purple-border);
+  border-top: 4px solid var(--cec-purple-active);
+  border-radius: var(--radius-md);
+  padding: 36px 32px;
+  box-shadow: 0 4px 20px var(--cec-purple-shadow);
+  margin-bottom: 24px;
+}
+
+.card-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--cec-purple-dark);
+}
+
+.card-header .card-desc {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.login-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-logo-img {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  border: 3px solid var(--cec-purple-active);
+  box-shadow: 0 4px 12px rgba(166, 28, 249, 0.2);
+  object-fit: cover;
+  background: #ffffff;
+  padding: 2px;
+}
+
+.section-card {
+  background: #ffffff;
+  border: 1px solid var(--cec-purple-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: 0 2px 8px var(--cec-purple-shadow);
+}
+
+.section-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: var(--cec-purple-dark);
+  font-size: 1.35rem;
+  font-weight: 700;
+  border-bottom: 2px solid var(--cec-purple-light);
+  padding-bottom: 8px;
+}
+
+/* =========================================================
+   STATUS NOTIFICATIONS
+   ========================================================= */
+
+#message:not(:empty) {
+  position: sticky;
+  top: 60px;
+  z-index: 90;
+  padding: 16px 22px;
+  margin-bottom: 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  background: var(--cec-purple-light);
+  color: var(--cec-purple-dark);
+  border-right: 5px solid var(--cec-purple-active);
+  animation: slideDown 0.25s ease-out;
+}
+
+#message[data-kind="success"]:not(:empty) {
+  background: var(--success-bg);
+  color: #065f46;
+  border-right-color: var(--success);
+}
+
+#message[data-kind="error"]:not(:empty) {
+  background: var(--error-bg);
+  color: #991b1b;
+  border-right-color: var(--error);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   ACCOUNT & ELECTION STATUS
+   ========================================================= */
+
+.account-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--cec-purple-light);
+}
+
+#account-title {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--cec-purple-dark);
+  font-weight: 800;
+}
+
+#account-name {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.election-status-card {
+  background: var(--cec-purple-light);
+  border: 1px solid var(--cec-purple-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.election-status-card h3 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+  color: var(--cec-purple-dark);
+  font-weight: 700;
+}
+
+.status-indicator-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-pill {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0 0 6px;
+  padding: 5px 16px;
+  background: var(--cec-purple-dark);
+  color: #ffffff;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.status-times, .status-window {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* =========================================================
+   FORMS & INPUTS
+   ========================================================= */
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--cec-purple-dark);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="datetime-local"],
+input[type="file"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--cec-purple-border);
+  border-radius: var(--radius-sm);
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--cec-purple-active);
+  box-shadow: 0 0 0 3px rgba(166, 28, 249, 0.18);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.input-action-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.input-action-row input {
+  flex: 1;
+}
+
+.input-action-row button {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* =========================================================
+   BUTTONS (Exact bechirot.gov.il styling)
+   ========================================================= */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 12px 26px;
+  border-radius: var(--radius-sm);
+  border: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.05s ease, box-shadow 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Primary CEC Button: #a61cf9 with hover gradient to #450e66 */
+.btn-primary, button[type="submit"] {
+  background-color: var(--cec-purple-active);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(166, 28, 249, 0.25);
+}
+
+.btn-primary:hover:not(:disabled), button[type="submit"]:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--cec-purple-active) 0%, var(--cec-purple-deep) 100%);
+  color: #ffffff;
+}
+
+.btn-primary:active:not(:disabled), button[type="submit"]:active:not(:disabled) {
+  background-color: var(--cec-purple-deep);
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Success Button (Confirmation) */
+.btn-success {
+  background-color: #059669;
+  color: #ffffff;
+  padding: 14px 36px;
+  font-size: 1.15rem;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+/* Danger Button (Logout & Dialog) */
+.btn-danger {
+  background-color: var(--error);
+  color: #ffffff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* Outline Button */
+.btn-outline {
+  background: transparent;
+  color: var(--cec-purple-dark);
+  border: 1.5px solid var(--cec-purple-active);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--cec-purple-light);
+  color: var(--cec-purple-dark);
+}
+
+/* Action Buttons Bar in Admin Menu */
+.btn-action {
+  background: #ffffff;
+  color: var(--cec-purple-dark);
+  border: 1.5px solid var(--cec-purple-border);
+  padding: 14px 22px;
+  font-size: 1rem;
+}
+
+.btn-action:hover:not(:disabled) {
+  background: var(--cec-purple-light);
+  border-color: var(--cec-purple-active);
+  color: var(--cec-purple-active);
+}
+
+.admin-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 22px 0 12px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.account-footer-bar {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 2px solid var(--cec-purple-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* =========================================================
+   VOTER CONFIRMATION
+   ========================================================= */
+
+.voter-confirm-card {
+  border: 2px solid var(--cec-purple-active);
+  background: #ffffff;
+}
+
+.voter-details-box {
+  background: var(--cec-purple-light);
+  border: 1px solid var(--cec-purple-border);
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+
+.voter-fullname {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--cec-purple-dark);
+}
+
+.voter-id-badge {
+  margin: 6px 0 0;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.instruction-banner {
+  background: var(--warning-bg);
+  border: 1.5px solid var(--warning-border);
+  color: #92400e;
+  border-radius: var(--radius-sm);
+  padding: 18px 22px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.instruction-banner p {
+  margin: 0;
+}
+
+.availability-status {
+  font-weight: 700;
+  margin-top: 14px;
+  color: var(--cec-purple-dark);
+}
+
+/* =========================================================
+   SUB PANELS (ADMIN / ENVELOPES / STATS)
+   ========================================================= */
+
+.sub-panel {
+  background: #ffffff;
+  border: 1px solid var(--cec-purple-border);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  margin-top: 24px;
+  box-shadow: 0 4px 14px var(--cec-purple-shadow);
+}
+
+.sub-panel h3 {
+  margin-top: 0;
+  color: var(--cec-purple-dark);
+  font-size: 1.35rem;
+  font-weight: 800;
+  border-bottom: 2px solid var(--cec-purple-light);
+  padding-bottom: 10px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+/* =========================================================
+   STATISTICS & METRIC CARDS
+   ========================================================= */
+
+.statistics-card {
+  background: var(--cec-purple-light);
+  border: 1px solid var(--cec-purple-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.statistics-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.statistics-card dt {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.statistics-card dd {
+  margin: 4px 0 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--cec-purple-dark);
+}
+
+.participation-bar {
+  display: flex;
+  height: 22px;
+  background: #d9c8de;
+  border-radius: 11px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.participation-voted {
+  background: linear-gradient(90deg, var(--cec-purple-dark), var(--cec-purple-active));
+  transition: width 0.4s ease;
+}
+
+.participation-legend {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* =========================================================
+   DUPLICATE VOTE MODAL DIALOG
+   ========================================================= */
+
+#duplicate-vote-dialog {
+  width: min(520px, calc(100% - 32px));
+  border: 2px solid var(--error-border);
+  border-radius: var(--radius-lg);
+  padding: 36px 30px;
+  color: #7f1d1d;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+#duplicate-vote-dialog::backdrop {
+  background: rgba(75, 9, 64, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.dialog-icon {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+}
+
+#duplicate-vote-dialog h2 {
+  margin: 0 0 12px;
+  color: var(--error);
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+#duplicate-vote-message {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 26px;
+  color: var(--text-main);
+}
+
+#duplicate-vote-dialog button {
+  width: 100%;
+}
+
+/* =========================================================
+   FOOTER (CEC Style)
+   ========================================================= */
+
+.gov-footer {
+  background-color: var(--cec-purple-dark);
+  color: #ffffff;
+  border-top: 3px solid var(--cec-purple-active);
+  padding: 30px 20px;
+  margin-top: auto;
+  text-align: center;
+}
+
+.gov-footer-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.gov-footer-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+  margin-bottom: 10px;
+}
+
+.gov-footer-content p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.gov-footer-sub {
+  margin-top: 6px !important;
+  font-size: 0.82rem !important;
+  color: #eed3ff !important;
+  font-weight: 400 !important;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--cec-purple-active);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .main-header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .header-brand-group {
+    gap: 14px;
+  }
+
+  .header-logo-image {
+    width: 56px;
+    height: 56px;
+  }
+
+  .header-titles h1 {
+    font-size: 1.7rem;
+  }
+
+  main {
+    margin: 18px auto;
+    padding: 0 16px;
+  }
+
+  .content-card {
+    padding: 24px 18px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .input-action-row {
+    flex-direction: column;
+  }
+
+  .statistics-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .gov-topbar-clock {
+    display: none;
+  }
+}
