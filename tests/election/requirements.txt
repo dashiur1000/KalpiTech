@@ -1,0 +1,2 @@
+# Python zoneinfo needs IANA timezone data on Windows. Used only by tests.
+tzdata==2026.5
