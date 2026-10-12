@@ -5,7 +5,8 @@ using KalpiTech.Api.Models;
 namespace KalpiTech.Api.Services;
 
 // One attempt after COMMIT. No queue, retries, recipient logging or changes to the vote.
-public sealed class VoteConfirmationEmail(HttpClient client, IConfiguration configuration, ILogger<VoteConfirmationEmail> logger)
+public sealed class VoteConfirmationEmail(HttpClient client, IConfiguration configuration,
+    ILogger<VoteConfirmationEmail> logger, Data.AuditLogStore audit)
 {
     public static void ValidateConfiguration(IConfiguration configuration)
     {
@@ -18,10 +19,22 @@ public sealed class VoteConfirmationEmail(HttpClient client, IConfiguration conf
     private static bool ValidAddress(string? value) => !string.IsNullOrWhiteSpace(value)
         && !value.Any(char.IsControl) && MailAddress.TryCreate(value, out var address) && address.Address == value;
 
-    public async Task SendAsync(VoteResult result)
+    public async Task SendAsync(VoteResult result, string actorRole, string actorIdentifier,
+        string voterId, string correlationId)
     {
-        if (result.Status != VoteStatus.Saved || result.Recipient is not { } recipient
-            || !configuration.GetValue<bool>("Mail:Enabled") || !ValidAddress(recipient.EmailAddress)) return;
+        if (result.Status != VoteStatus.Saved || result.Recipient is not { } recipient) return;
+        AuditEvent Entry(string auditResult, string details) => new(AuditActions.EmailSend, auditResult,
+            actorRole, actorIdentifier, "Voter", voterId, details, correlationId);
+        if (!configuration.GetValue<bool>("Mail:Enabled"))
+        {
+            await audit.TryWriteAsync(Entry(AuditResults.Skipped, "שליחת המייל כבויה בהגדרות"));
+            return;
+        }
+        if (!ValidAddress(recipient.EmailAddress))
+        {
+            await audit.TryWriteAsync(Entry(AuditResults.Skipped, "אין כתובת מייל תקינה"));
+            return;
+        }
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, "smtp/email");
@@ -34,12 +47,18 @@ public sealed class VoteConfirmationEmail(HttpClient client, IConfiguration conf
             });
             // A disconnected browser must not cancel the attempt after a committed vote.
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
-            if (!response.IsSuccessStatusCode) logger.LogWarning("Confirmation email failed. HTTP status: {Status}.", (int)response.StatusCode);
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("Confirmation email failed. HTTP status: {Status}.", (int)response.StatusCode);
+                await audit.TryWriteAsync(Entry(AuditResults.Failed, "ספק המייל דחה את הבקשה"));
+            }
+            else await audit.TryWriteAsync(Entry(AuditResults.Success, "מייל אישור נשלח"));
         }
         catch (Exception error) when (error is HttpRequestException or TaskCanceledException)
         {
             // Exception text/provider responses may contain personal data: log only its type.
             logger.LogWarning("Confirmation email failed ({ExceptionType}); the vote remains saved.", error.GetType().Name);
+            await audit.TryWriteAsync(Entry(AuditResults.Failed, "כשל בתקשורת עם ספק המייל"));
         }
     }
 }

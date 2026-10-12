@@ -1,0 +1,29 @@
+KalpiTech - משגר Windows
+==========================
+
+1. העתק את Start-KalpiTech.cmd ואת התיקייה scripts אל התיקייה הראשית של KalpiTech.
+   אשר מיזוג עם התיקייה scripts שכבר קיימת. הקבצים הקיימים לא יימחקו.
+
+2. ודא שבתיקיית KalpiTech קיימים:
+   .env
+   compose.yaml
+   compose.app.yaml
+
+3. אם ברצונך להשתמש בסיסמאות הקלפיות הפרטיות, ודא שקיים:
+   .local\import\kalpi.csv
+
+4. לחץ לחיצה ימנית על scripts\Create-KalpiTechShortcut.ps1 ובחר:
+   Run with PowerShell
+
+5. קיצור דרך בשם KalpiTech יופיע על שולחן העבודה.
+
+מהיום ניתן לפתוח את המערכת בלחיצה כפולה על קיצור הדרך.
+המשגר ינסה לפתוח את Docker Desktop, יפעיל את הקונטיינרים,
+ימתין לבדיקת הבריאות ויפתח את המערכת בדפדפן.
+
+אם Windows חוסם את הפעלת סקריפט יצירת הקיצור, פתח PowerShell בתיקיית
+הפרויקט והרץ:
+
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Create-KalpiTechShortcut.ps1
+
+המשגר אינו שומר או מדפיס סיסמאות.

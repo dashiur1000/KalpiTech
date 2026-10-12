@@ -50,7 +50,7 @@ def main():
         people = encode([['Id','KalpiId','FirstName','LastName','Voted','EmailAddress','VotedAt','VotedIn'],
                          *[[f'{number:09}',1,'בדיקה','סינתטית','FALSE','','',''] for number in range(1,5)]])
         (data / 'kalpi.csv').write_bytes(stations)
-        (private / 'kalpi.csv').write_bytes(stations)
+        # Missing private CSV is deliberate: admin upload must recover readiness.
         (data / 'people.csv').write_bytes(people)
         app_port, db_port = free_port(), free_port()
         # Read the actual app compose definition without loading developer secrets.
@@ -64,6 +64,7 @@ def main():
         config.pop('name', None)
         config['services']['mysql']['ports'] = [{'target':3306,'published':str(db_port),'host_ip':'127.0.0.1','protocol':'tcp'}]
         api = config['services']['api']
+        api['healthcheck'].update(interval='1s',start_period='1s',retries=2)
         api.pop('build', None)
         api['ports'] = [{'target':8080,'published':str(app_port),'host_ip':'127.0.0.1','protocol':'tcp'}]
         api['volumes'] = [dict(type='volume',source='app_state',target='/workspace/.local'),
@@ -93,13 +94,36 @@ def main():
 
         connection = None
         try:
-            compose('up','-d','--wait','--wait-timeout','180')
+            compose('up','-d')
             base = f'http://127.0.0.1:{app_port}'
             manager = Client(base)
+            for attempt in range(120):
+                try:
+                    if manager.request('/health/db')[0] == 200:
+                        break
+                except OSError:
+                    pass
+                time.sleep(1)
+            else:
+                raise AssertionError('API did not start')
+            assert expect(manager, '/health/ready', status=503)['status'] == 'not_ready'
+            expect(manager, '/health')
+            logs = subprocess.check_output([*command,'logs','api'],encoding='utf-8')
+            assert 'קובץ סיסמאות הקלפיות חסר' in logs
+            assert 'לאף קלפי אין סיסמה' in logs
+            for attempt in range(20):
+                services = json.loads(subprocess.check_output([*command,'ps','--format','json','api'],encoding='utf-8'))
+                if services['Health'] == 'unhealthy':
+                    break
+                time.sleep(1)
+            else:
+                raise AssertionError('Docker must mark passwordless API unhealthy')
+            print('PASS: missing CSV warning, HTTP 503 readiness and Docker unhealthy; admin remains accessible', flush=True)
             assert manager.login(password=DEMO_ADMIN_PASSWORD)[0] == 200
             assert expect(manager, '/api/election')['state'] == 'Preparation'
             upload_context = SimpleNamespace(client=manager, base=base)
             assert ImportTests.upload(upload_context, files=(stations,people))[0] == 200
+            expect(manager, '/health/ready')
             print('PASS: container startup, schema, admin login and Python CSV upload', flush=True)
             regular, accessible = Client(base), Client(base)
             assert regular.login('1', KALPI_PASSWORD)[0] == 200
@@ -136,7 +160,7 @@ def main():
             expect(regular, '/api/voters/confirm', {'id':'000000003'}, status=409)
             assert expect(manager, '/api/envelopes/confirm', {'id':'000000003'})['votedIn'] == 0
             expect(manager, '/api/envelopes/confirm', {'id':'000000003'}, status=409)
-            assert expect(manager, '/api/statistics')['overall']['voted'] == 3
+            assert expect(manager, '/api/statistics')['summary']['voted'] == 3
             with connection.cursor() as cursor:
                 cursor.execute('SELECT Id,KalpiId,Voted,VotedAt,VotedIn FROM People ORDER BY Id')
                 before = cursor.fetchall()
@@ -149,9 +173,10 @@ def main():
             connection = None
             compose('down')  # Keep only THIS test project's volumes to check persistence.
             compose('up','-d','--wait','--wait-timeout','180')
-            assert expect(manager, '/api/statistics')['overall']['voted'] == 3  # Existing cookie still works.
+            assert expect(manager, '/api/statistics')['summary']['voted'] == 3  # Existing cookie still works.
             assert Client(base).login('2',KALPI_PASSWORD)[0] == 200
             assert Client(base).login(password=DEMO_ADMIN_PASSWORD)[0] == 200
+            expect(manager, '/health/ready')  # Missing source is harmless after passwords were stored.
             connection = pymysql.connect(host='127.0.0.1',port=db_port,user='kalpitech',
                                          password='SyntheticDbPassword123',database='VotesDb',autocommit=True)
             with connection.cursor() as cursor:

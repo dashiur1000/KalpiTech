@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using KalpiTech.Api.Data;
@@ -15,7 +16,7 @@ namespace KalpiTech.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public sealed class DataController(DatabaseConnectionFactory connections, ElectionStore elections,
     TimeProvider clock, PasswordHasher<LoginAccount> hasher, IConfiguration configuration,
-    IWebHostEnvironment environment) : ControllerBase
+    IWebHostEnvironment environment, AuditLogStore audit) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Read(CancellationToken token)
@@ -27,10 +28,17 @@ public sealed class DataController(DatabaseConnectionFactory connections, Electi
         await using var reader = await command.ExecuteReaderAsync(token);
         await reader.ReadAsync(token);
         var locked = schedule.InCommitteeWindow(clock.GetUtcNow().UtcDateTime);
+        var votes = reader.GetInt64(2);
+        var canImport = !locked && votes == 0;
+        if (!canImport)
+            await audit.TryWriteAsync(new(AuditActions.DataImport, AuditResults.Blocked,
+                User.FindFirstValue(ClaimTypes.Role), User.FindFirstValue(ClaimTypes.NameIdentifier),
+                "Dataset", null, locked ? "ניסיון טעינה נחסם בזמן נעילת הנתונים" :
+                "ניסיון טעינה נחסם משום שהמאגר מכיל הצבעות", HttpContext.TraceIdentifier));
         return Ok(new { hasData = reader.GetInt64(0) > 0 || reader.GetInt64(1) > 0,
-            canImport = !locked && reader.GetInt64(2) == 0,
+            canImport,
             message = locked ? "טעינת הנתונים נעולה למשך 36 שעות ממועד תחילת הבחירות."
-                : reader.GetInt64(2) > 0 ? "לא ניתן להחליף מאגר המכיל רישומי הצבעה." : "" });
+                : votes > 0 ? "לא ניתן להחליף מאגר המכיל רישומי הצבעה." : "" });
     }
 
     [HttpPost("import")]
@@ -39,9 +47,16 @@ public sealed class DataController(DatabaseConnectionFactory connections, Electi
     public async Task<IActionResult> Import([FromForm] IFormFile kalpiFile, [FromForm] IFormFile peopleFile,
         [FromForm] bool confirmed, CancellationToken token)
     {
-        if (!confirmed) return BadRequest(new { message = "יש לאשר את החלפת הנתונים לפני הטעינה." });
+        if (!confirmed)
+        {
+            await WriteAudit(AuditResults.Blocked, "הטעינה לא אושרה");
+            return BadRequest(new { message = "יש לאשר את החלפת הנתונים לפני הטעינה." });
+        }
         if (kalpiFile.Length == 0 || peopleFile.Length == 0 || kalpiFile.Length > 5_000_000 || peopleFile.Length > 20_000_000)
+        {
+            await WriteAudit(AuditResults.Failed, "קובצי הטעינה חסרים או חורגים מהגודל המותר");
             return BadRequest(new { message = "יש לבחור שני קובצי CSV: קלפיות עד 5 MB ובוחרים עד 20 MB." });
+        }
         var root = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "..", ".."));
         var directory = Path.Combine(root, ".local", "uploads", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
@@ -68,11 +83,27 @@ public sealed class DataController(DatabaseConnectionFactory connections, Electi
             await process.WaitForExitAsync();
             await errors; // Drain without logging potentially sensitive runtime diagnostics.
             using var result = JsonDocument.Parse(await output);
-            return StatusCode(result.RootElement.GetProperty("status").GetInt32(), result.RootElement.Clone());
+            var status = result.RootElement.GetProperty("status").GetInt32();
+            await WriteAudit(status is >= 200 and < 300 ? AuditResults.Success :
+                status == 409 ? AuditResults.Blocked : AuditResults.Failed,
+                status is >= 200 and < 300 ? "טעינת הנתונים הסתיימה בהצלחה" :
+                status == 409 ? "טעינת הנתונים נחסמה לפי כללי המערכת" : "טעינת הנתונים נכשלה");
+            return StatusCode(status, result.RootElement.Clone());
         }
-        catch (InvalidOperationException error) { return BadRequest(new { message = error.Message }); }
+        catch (InvalidOperationException error)
+        {
+            await WriteAudit(AuditResults.Failed, "קובץ הקלפיות אינו תקין");
+            return BadRequest(new { message = error.Message });
+        }
         catch (Exception error) when (error is IOException or System.ComponentModel.Win32Exception or JsonException)
-        { return StatusCode(503, new { message = "הטעינה לא קיבלה אישור הצלחה. יש לבדוק את המאגר לפני ניסיון נוסף." }); }
+        {
+            await WriteAudit(AuditResults.Failed, "תהליך טעינת הנתונים לא החזיר תוצאה תקינה");
+            return StatusCode(503, new { message = "הטעינה לא קיבלה אישור הצלחה. יש לבדוק את המאגר לפני ניסיון נוסף." });
+        }
         finally { Directory.Delete(directory, true); }
+
+        Task WriteAudit(string result, string details) => audit.TryWriteAsync(new(AuditActions.DataImport,
+            result, User.FindFirstValue(ClaimTypes.Role), User.FindFirstValue(ClaimTypes.NameIdentifier),
+            "Dataset", null, details, HttpContext.TraceIdentifier));
     }
 }

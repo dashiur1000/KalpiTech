@@ -1,4 +1,19 @@
 const element = id => document.getElementById(id);
+
+async function refreshReadiness() {
+  const warning = element('readiness-warning');
+  try {
+    const response = await fetch('/health/ready', { cache: 'no-store' });
+    const result = await response.json();
+    warning.textContent = response.ok ? '' : result.message;
+    warning.hidden = response.ok;
+  } catch {
+    warning.textContent = 'לא ניתן לבדוק את מוכנות המערכת. יש לבדוק את החיבור לשרת.';
+    warning.hidden = false;
+  }
+}
+refreshReadiness();
+setInterval(refreshReadiness, 10000);
 let csrfToken;
 let searchSequence = 0;
 let currentAccount = null;
@@ -16,77 +31,250 @@ let statisticsOpen = false;
 let statisticsSequence = 0;
 let statisticsRequest = null;
 let statisticsReport = null;
+let statisticsViewLogged = false;
+let stationPage = 1;
+const stationPageSize = 20;
+let auditOpen = false;
+let auditPage = 1;
+let auditRequest = null;
+let auditViewLogged = false;
+let auditSequence = 0;
+
+const heNumber = new Intl.NumberFormat('he-IL', { maximumFractionDigits: 2 });
+const israelDateTime = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short' });
+
+function node(tag, text, className) {
+  const result = document.createElement(tag);
+  if (text !== undefined) result.textContent = text;
+  if (className) result.className = className;
+  return result;
+}
+
+function formatPercent(value) { return value === null ? 'אין נתונים' : `${heNumber.format(value)}%`; }
+function formatDate(value) { return value ? israelDateTime.format(new Date(value)) : 'לא הוגדר'; }
 
 function closeStatistics() {
   statisticsOpen = false;
   statisticsSequence++;
   element('statistics-panel').hidden = true;
   element('admin-menu').hidden = false;
+  document.querySelector('main').classList.remove('dashboard-open');
   statisticsReport = null;
+  statisticsViewLogged = false;
+  stationPage = 1;
   element('statistics-city').value = '';
-  element('statistics-cities').replaceChildren();
-  element('overall-statistics').replaceChildren();
-  element('city-statistics').replaceChildren();
-  element('city-statistics').hidden = true;
+  element('station-search').value = '';
+  for (const id of ['dashboard-election', 'dashboard-summary', 'hourly-chart', 'cities-table',
+    'location-chart', 'stations-table', 'station-pagination']) element(id).replaceChildren();
   element('statistics-status').textContent = '';
-  element('statistics-city-message').textContent = '';
 }
 
-function renderParticipation(target, counts) {
-  target.replaceChildren();
-  const numbers = new Intl.NumberFormat('he-IL', { maximumFractionDigits: 2 });
-  const metrics = document.createElement('dl');
-  for (const [label, value] of [['מספר בוחרים', numbers.format(counts.total)],
-    ['מספר מצביעים', numbers.format(counts.voted)],
-    ['אחוז השתתפות', counts.percentage === null ? 'אין נתונים' : `${numbers.format(counts.percentage)}%`]]) {
-    const term = document.createElement('dt');
-    term.textContent = label;
-    const amount = document.createElement('dd');
-    amount.textContent = value;
-    metrics.append(term, amount);
+function closeAudit() {
+  auditOpen = false;
+  auditSequence++;
+  auditRequest = null;
+  auditPage = 1;
+  auditViewLogged = false;
+  element('audit-panel').hidden = true;
+  element('admin-menu').hidden = false;
+  document.querySelector('main').classList.remove('dashboard-open');
+  element('audit-table').replaceChildren();
+  element('audit-pagination').replaceChildren();
+  element('audit-status').textContent = '';
+  element('audit-count').textContent = '';
+}
+
+const auditActions = { Login: 'התחברות', VoterSearch: 'חיפוש בוחר', VoteConfirmation: 'אישור הצבעה',
+  DoubleEnvelope: 'מעטפה כפולה', DataImport: 'טעינת נתונים', ElectionSchedule: 'קביעת מועדים',
+  StatisticsView: 'צפייה בנתונים', AuditView: 'צפייה ביומן', EmailSend: 'שליחת מייל' };
+const auditResults = { Success: 'הצלחה', Blocked: 'נחסם', Failed: 'כשל', Skipped: 'דולג' };
+const auditRoles = { Admin: 'מנהל הוועדה', Regular: 'קלפי רגילה', Accessible: 'קלפי נגישה' };
+const auditTargets = { Voter: 'בוחר', Account: 'חשבון', Election: 'בחירות', Dataset: 'מאגר נתונים',
+  Statistics: 'נתוני השתתפות', AuditLog: 'יומן פעולות' };
+
+function auditQuery() {
+  const query = new URLSearchParams({ page: String(auditPage), pageSize: '25' });
+  query.set('recordView', auditViewLogged ? 'false' : 'true');
+  const values = { action: element('audit-action').value, result: element('audit-result').value,
+    actorIdentifier: element('audit-actor').value.trim() };
+  Object.entries(values).forEach(([key, value]) => { if (value) query.set(key, value); });
+  for (const [key, id] of [['from', 'audit-from'], ['to', 'audit-to']]) {
+    const value = element(id).value;
+    if (value) query.set(key, new Date(value).toISOString());
   }
-  target.append(metrics);
-  if (counts.percentage === null) return;
-  const graph = document.createElement('div');
-  graph.className = 'participation-bar';
-  graph.setAttribute('role', 'img');
-  graph.setAttribute('aria-label', `השתתפות: ${numbers.format(counts.percentage)} אחוזים`);
-  const voted = document.createElement('div');
-  voted.className = 'participation-voted';
-  voted.style.width = `${counts.percentage}%`;
-  graph.append(voted);
-  const legend = document.createElement('p');
-  legend.className = 'participation-legend';
-  legend.textContent = `כחול: הצביעו (${numbers.format(counts.voted)}) | אפור: טרם הצביעו (${numbers.format(counts.total - counts.voted)})`;
-  target.append(graph, legend);
+  return query.toString();
 }
 
-function renderCityStatistics() {
-  const cityName = element('statistics-city').value;
-  const city = statisticsReport?.cities.find(item => item.city === cityName);
-  element('city-statistics').hidden = !city;
-  element('statistics-city-message').textContent = city ? `עיר: ${city.city}`
-    : cityName ? 'יש לבחור עיר קיימת מתוך ההשלמה.' : 'בחר עיר להצגת נתוניה.';
-  if (city) renderParticipation(element('city-statistics'), city.counts);
-  else element('city-statistics').replaceChildren();
+async function refreshAudit() {
+  if (!auditOpen || currentAccount?.role !== 'Admin' || auditRequest) return;
+  const sequence = auditSequence;
+  element('audit-status').textContent = 'טוען את יומן הפעולות…';
+  const pending = requestApi(`/api/audit?${auditQuery()}`); auditRequest = pending;
+  try {
+    const report = await pending;
+    if (!auditOpen || sequence !== auditSequence) return;
+    auditViewLogged = true;
+    element('audit-count').textContent = `${heNumber.format(report.totalCount)} רשומות בסך הכול`;
+    const rows = report.items.map(item => [formatDate(item.occurredAtUtc),
+      item.actorIdentifier ? `${auditRoles[item.actorRole] || item.actorRole || 'משתמש'} — ${item.actorIdentifier}` : 'לא מזוהה',
+      auditActions[item.action] || item.action,
+      item.targetType ? `${auditTargets[item.targetType] || item.targetType}${item.targetIdentifier ? ` — ${item.targetIdentifier}` : ''}` : '—',
+      auditResults[item.result] || item.result, item.details || '—']);
+    element('audit-table').replaceChildren(table(['תאריך ושעה', 'משתמש', 'פעולה', 'יעד', 'תוצאה', 'פרטים'], rows));
+    const nav = element('audit-pagination'); nav.replaceChildren();
+    if (report.totalPages > 1) {
+      const previous = node('button', 'הקודם'); previous.type = 'button'; previous.disabled = report.page <= 1;
+      previous.addEventListener('click', () => { auditPage--; refreshAudit(); });
+      const label = node('span', `עמוד ${heNumber.format(report.page)} מתוך ${heNumber.format(report.totalPages)}`);
+      const next = node('button', 'הבא'); next.type = 'button'; next.disabled = report.page >= report.totalPages;
+      next.addEventListener('click', () => { auditPage++; refreshAudit(); });
+      nav.append(previous, label, next);
+    }
+    element('audit-status').textContent = report.items.length ? '' : 'לא נמצאו רשומות המתאימות לסינון.';
+  } catch (error) {
+    if (!auditOpen || sequence !== auditSequence) return;
+    element('audit-status').textContent = `טעינת היומן נכשלה: ${error.message}`;
+    if (error.status === 401) { showAccount(null); await refreshToken().catch(() => {}); }
+  } finally { if (auditRequest === pending) auditRequest = null; }
+}
+
+function renderElection(report) {
+  const target = element('dashboard-election');
+  target.replaceChildren();
+  const states = { Preparation: ['טרם החלו', 'preparation'], Active: ['פעילות', 'active'], Finished: ['הסתיימו', 'finished'] };
+  const [label, css] = states[report.election.state] || [report.election.state, 'finished'];
+  const facts = node('div', undefined, 'election-facts');
+  facts.append(node('span', `מצב: ${label}`, `state-${css}`),
+    node('span', `התחלה: ${formatDate(report.election.startsAt)}`),
+    node('span', `סיום: ${formatDate(report.election.endsAt)}`));
+  if (report.election.state === 'Active' && report.election.endsAt) {
+    const seconds = Math.max(0, Math.floor((new Date(report.election.endsAt) - new Date()) / 1000));
+    const hours = Math.floor(seconds / 3600), minutes = Math.floor((seconds % 3600) / 60);
+    facts.append(node('span', `נותרו: ${heNumber.format(hours)} שעות ו־${heNumber.format(minutes)} דקות`, 'state-active'));
+  }
+  target.append(facts);
+}
+
+function renderSummary(summary) {
+  const values = [['👥', 'בעלי זכות בחירה', summary.total, 'blue'], ['✓', 'הצביעו', summary.voted, 'green'],
+    ['%', 'אחוז הצבעה', formatPercent(summary.percentage), 'green'], ['…', 'טרם הצביעו', summary.notVoted, 'orange'],
+    ['⌂', 'קלפיות עם פעילות', summary.activeStations, 'blue'], ['✉', 'מעטפות כפולות', summary.doubleEnvelopes, 'orange']];
+  element('dashboard-summary').replaceChildren(...values.map(([icon, label, value, tone]) => {
+    const card = node('article', undefined, 'summary-card'); card.dataset.tone = tone;
+    card.append(node('span', icon, 'summary-icon'), node('span', label, 'summary-label'),
+      node('strong', typeof value === 'number' ? heNumber.format(value) : value, 'summary-value'));
+    return card;
+  }));
+}
+
+function renderHourly() {
+  const target = element('hourly-chart'); target.replaceChildren();
+  const rows = statisticsReport?.hourly || [];
+  if (!rows.length || !rows.some(row => row.votes)) { target.append(node('p', 'עדיין לא נרשמו הצבעות.', 'chart-empty')); return; }
+  const mode = element('hourly-view').value, width = Math.max(620, rows.length * 58), height = 270;
+  const pad = { x: 50, top: 18, bottom: 42 }, innerWidth = width - pad.x - 18, innerHeight = height - pad.top - pad.bottom;
+  const series = mode === 'hourly' ? ['votes'] : mode === 'cumulative' ? ['cumulative'] : ['votes', 'cumulative'];
+  const max = Math.max(1, ...rows.flatMap(row => series.map(key => row[key])));
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.setAttribute('class', 'line-chart');
+  svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'גרף קצב הצבעה לפי שעה');
+  for (let tick = 0; tick <= 4; tick++) {
+    const y = pad.top + innerHeight * tick / 4;
+    const line = document.createElementNS(svg.namespaceURI, 'line');
+    line.setAttribute('x1', pad.x); line.setAttribute('x2', width - 18); line.setAttribute('y1', y); line.setAttribute('y2', y); line.setAttribute('class', 'chart-grid'); svg.append(line);
+    const label = document.createElementNS(svg.namespaceURI, 'text'); label.setAttribute('x', pad.x - 8); label.setAttribute('y', y + 4); label.setAttribute('text-anchor', 'end'); label.setAttribute('class', 'chart-axis'); label.textContent = heNumber.format(Math.round(max * (4 - tick) / 4)); svg.append(label);
+  }
+  const xAt = index => pad.x + (rows.length === 1 ? innerWidth / 2 : innerWidth * index / (rows.length - 1));
+  const yAt = value => pad.top + innerHeight * (1 - value / max);
+  const timeFormat = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit' });
+  series.forEach(key => {
+    const path = document.createElementNS(svg.namespaceURI, 'polyline');
+    path.setAttribute('points', rows.map((row, i) => `${xAt(i)},${yAt(row[key])}`).join(' '));
+    path.setAttribute('class', key === 'votes' ? 'chart-hourly' : 'chart-cumulative'); svg.append(path);
+    rows.forEach((row, i) => {
+      const circle = document.createElementNS(svg.namespaceURI, 'circle');
+      circle.setAttribute('cx', xAt(i)); circle.setAttribute('cy', yAt(row[key])); circle.setAttribute('r', 5);
+      circle.setAttribute('class', `chart-point ${key === 'votes' ? 'hourly' : 'cumulative'}`);
+      const title = document.createElementNS(svg.namespaceURI, 'title');
+      title.textContent = `${timeFormat.format(new Date(row.bucketStart))}: ${key === 'votes' ? 'בשעה' : 'מצטבר'} ${heNumber.format(row[key])}`;
+      circle.append(title); svg.append(circle);
+    });
+  });
+  rows.forEach((row, i) => {
+    if (rows.length > 14 && i % Math.ceil(rows.length / 12) !== 0 && i !== rows.length - 1) return;
+    const label = document.createElementNS(svg.namespaceURI, 'text'); label.setAttribute('x', xAt(i)); label.setAttribute('y', height - 12); label.setAttribute('text-anchor', 'middle'); label.setAttribute('class', 'chart-axis'); label.textContent = timeFormat.format(new Date(row.bucketStart)); svg.append(label);
+  });
+  const legend = node('p', undefined, 'chart-legend');
+  if (series.includes('votes')) { const item = node('span', 'הצבעות בשעה'); item.style.setProperty('--legend', '#174e80'); legend.append(item); }
+  if (series.includes('cumulative')) { const item = node('span', 'מצטבר'); item.style.setProperty('--legend', '#177245'); legend.append(item); }
+  target.append(svg, legend);
+}
+
+function table(headers, rows) {
+  if (!rows.length) return node('p', 'אין נתונים להצגה.', 'table-empty');
+  const wrapper = node('div', undefined, 'data-table-wrap'), result = node('table', undefined, 'data-table');
+  const head = node('thead'), tr = node('tr'); headers.forEach(text => tr.append(node('th', text))); head.append(tr);
+  const body = node('tbody'); rows.forEach(cells => { const row = node('tr'); if (cells.inactive) row.className = 'inactive-row'; cells.forEach(value => row.append(node('td', value))); body.append(row); });
+  result.append(head, body); wrapper.append(result); return wrapper;
+}
+
+function renderCities() {
+  const query = element('statistics-city').value.trim();
+  const sort = element('city-sort').value;
+  const rows = [...(statisticsReport?.cities || [])].filter(row => row.city.includes(query));
+  rows.sort((a, b) => sort === 'voted' ? b.counts.voted - a.counts.voted
+    : sort === 'percentage' ? (b.counts.percentage ?? -1) - (a.counts.percentage ?? -1)
+      : a.city.localeCompare(b.city, 'he'));
+  element('cities-table').replaceChildren(table(['עיר', 'בעלי זכות', 'הצביעו', 'טרם הצביעו', 'אחוז'],
+    rows.map(row => [row.city, heNumber.format(row.counts.total), heNumber.format(row.counts.voted),
+      heNumber.format(row.counts.notVoted), formatPercent(row.counts.percentage)])));
+}
+
+function renderLocations() {
+  const target = element('location-chart'), values = statisticsReport.votingLocations;
+  target.replaceChildren();
+  if (!values.total) { target.append(node('p', 'עדיין לא נרשמו הצבעות.', 'chart-empty')); return; }
+  const parts = [['בקלפי המשויכת', values.assignedStation, '#174e80'], ['בקלפי אחרת', values.otherStation, '#d97706'], ['מעטפות כפולות', values.doubleEnvelopes, '#7c3aed']];
+  let angle = 0; const stops = [];
+  parts.forEach(([, value, color]) => { const next = angle + value / values.total * 360; stops.push(`${color} ${angle}deg ${next}deg`); angle = next; });
+  const visual = node('div'); const donut = node('div', undefined, 'donut'); donut.style.background = `conic-gradient(${stops.join(',')})`;
+  donut.setAttribute('role', 'img'); donut.setAttribute('aria-label', 'חלוקת מקום ההצבעה בפועל');
+  visual.append(donut, node('p', `${heNumber.format(values.total)} הצבעות`, 'donut-total'));
+  const list = node('ul', undefined, 'location-list');
+  parts.forEach(([label, value, color]) => { const item = node('li'); const swatch = node('span', undefined, 'legend-color'); swatch.style.background = color; item.append(swatch, node('span', label), node('strong', `${heNumber.format(value)} · ${formatPercent(values.total ? value / values.total * 100 : 0)}`)); list.append(item); });
+  target.append(visual, list);
+}
+
+function renderStations() {
+  const query = element('station-search').value.trim(), sort = element('station-sort').value;
+  const rows = [...(statisticsReport?.stations || [])].filter(row => String(row.kalpiId).includes(query) || row.city.includes(query));
+  rows.sort((a, b) => sort === 'percentage' ? (b.assigned.percentage ?? -1) - (a.assigned.percentage ?? -1)
+    : sort === 'lastVote' ? (new Date(b.lastVoteAt || 0) - new Date(a.lastVoteAt || 0)) : a.kalpiId - b.kalpiId);
+  const pages = Math.max(1, Math.ceil(rows.length / stationPageSize)); stationPage = Math.min(stationPage, pages);
+  const page = rows.slice((stationPage - 1) * stationPageSize, stationPage * stationPageSize);
+  const mapped = page.map(row => { const values = [heNumber.format(row.kalpiId), row.city, row.kalpiType === 'Accessible' ? 'נגישה' : 'רגילה',
+    heNumber.format(row.assigned.total), heNumber.format(row.assigned.voted), formatPercent(row.assigned.percentage), heNumber.format(row.actualVotes),
+    row.lastVoteAt ? formatDate(row.lastVoteAt) : 'אין פעילות']; values.inactive = !row.lastVoteAt; return values; });
+  element('stations-table').replaceChildren(table(['קלפי', 'עיר', 'סוג', 'בעלי זכות', 'הצביעו', 'אחוז', 'נרשמו בפועל', 'פעילות אחרונה'], mapped));
+  const nav = element('station-pagination'); nav.replaceChildren();
+  if (pages > 1) for (let pageNumber = 1; pageNumber <= pages; pageNumber++) { const button = node('button', heNumber.format(pageNumber)); button.type = 'button'; button.disabled = pageNumber === stationPage; button.addEventListener('click', () => { stationPage = pageNumber; renderStations(); }); nav.append(button); }
+}
+
+function renderDashboard(report) {
+  renderElection(report); renderSummary(report.summary); renderHourly(); renderCities(); renderLocations(); renderStations();
 }
 
 async function refreshStatistics() {
   if (!statisticsOpen || currentAccount?.role !== 'Admin' || statisticsRequest) return;
   const sequence = statisticsSequence;
-  const request = requestApi('/api/statistics');
+  const request = requestApi(`/api/statistics?recordView=${statisticsViewLogged ? 'false' : 'true'}`);
   statisticsRequest = request;
   try {
     const report = await request;
     if (!statisticsOpen || sequence !== statisticsSequence) return;
     statisticsReport = report;
-    renderParticipation(element('overall-statistics'), report.overall);
-    element('statistics-cities').replaceChildren(...report.cities.map(city => {
-      const option = document.createElement('option');
-      option.value = city.city;
-      return option;
-    }));
-    renderCityStatistics();
+    statisticsViewLogged = true;
+    renderDashboard(report);
     const localTime = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem',
       hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(report.updatedAt));
     element('statistics-status').textContent = `עודכן ב־${localTime} (שעון ישראל). מתעדכן כל חמש שניות.`;
@@ -179,6 +367,7 @@ function clearVoter() {
 
 function showAccount(account) {
   closeStatistics();
+  closeAudit();
   electionActive = false;
   envelopesAllowed = false;
   closeEnvelopes();
@@ -246,19 +435,41 @@ handleForm('election-form', async () => {
 element('open-statistics').addEventListener('click', async () => {
   if (savingImport || currentAccount?.role !== 'Admin') return;
   closeEnvelopes();
+  closeAudit();
   closeStatistics();
   statisticsOpen = true;
   element('import-panel').hidden = true;
   element('admin-menu').hidden = true;
   element('statistics-panel').hidden = false;
+  document.querySelector('main').classList.add('dashboard-open');
   element('statistics-status').textContent = 'טוען נתוני השתתפות…';
   message('');
   element('statistics-title').focus();
   await refreshStatistics();
 });
-element('statistics-city').addEventListener('input', renderCityStatistics);
+element('statistics-city').addEventListener('input', renderCities);
+element('city-sort').addEventListener('change', renderCities);
+element('hourly-view').addEventListener('change', renderHourly);
+element('station-search').addEventListener('input', () => { stationPage = 1; renderStations(); });
+element('station-sort').addEventListener('change', () => { stationPage = 1; renderStations(); });
 element('close-statistics').addEventListener('click', closeStatistics);
 setInterval(refreshStatistics, 5000);
+
+element('open-audit').addEventListener('click', async () => {
+  if (savingImport || currentAccount?.role !== 'Admin') return;
+  closeEnvelopes(); closeStatistics(); closeAudit();
+  auditOpen = true;
+  element('admin-menu').hidden = true;
+  element('audit-panel').hidden = false;
+  document.querySelector('main').classList.add('dashboard-open');
+  message(''); element('audit-title').focus();
+  await refreshAudit();
+});
+element('close-audit').addEventListener('click', closeAudit);
+element('audit-filter-form').addEventListener('submit', event => { event.preventDefault(); auditPage = 1; refreshAudit(); });
+element('clear-audit-filters').addEventListener('click', () => {
+  element('audit-filter-form').reset(); auditPage = 1; refreshAudit();
+});
 
 // The display refreshes; authorization and time decisions remain on the server.
 setInterval(() => { if (currentAccount) refreshElection().catch(handleElectionError); }, 5000);
@@ -377,6 +588,7 @@ handleForm('import-form', async () => {
   if (savingImport) return;
   savingImport = true;
   element('open-statistics').disabled = true;
+  element('open-audit').disabled = true;
   updateEnvelopeButtons();
   for (const id of ['logout', 'open-import', 'cancel-import']) element(id).disabled = true;
   try {
@@ -402,6 +614,7 @@ handleForm('import-form', async () => {
   } finally {
     savingImport = false;
     element('open-statistics').disabled = false;
+    element('open-audit').disabled = false;
     updateEnvelopeButtons();
     for (const id of ['logout', 'open-import', 'cancel-import']) element(id).disabled = false;
   }

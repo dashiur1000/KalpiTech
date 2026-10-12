@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>קלפי טק</title>
-  <link rel="stylesheet" href="/css/site.css?v=11.1">
-  <script src="/js/app.js?v=11.1" defer></script>
+  <link rel="stylesheet" href="/css/site.css?v=14.0">
+  <script src="/js/app.js?v=14.0" defer></script>
 </head>
 <body>
 <main>
   <header><h1>קלפי טק</h1><p>מערכת לניהול רישום הצבעות</p></header>
+  <p id="readiness-warning" role="alert" hidden></p>
   <p id="message" role="status" aria-live="polite"></p>
   <section id="login" hidden>
     <h2>התחברות</h2>
@@ -77,6 +78,7 @@
       <button id="open-envelopes" type="button" disabled>הזנת מעטפות כפולות</button>
       <p>הזנת מעטפות כפולות זמינה מתחילת הבחירות ולמשך 36 שעות. יש לשמור מועדי התחלה וסיום תקינים; הכפתור יופעל אוטומטית בתחילת החלון.</p>
       <button id="open-statistics" type="button">צפייה בנתונים</button>
+      <button id="open-audit" type="button">יומן פעולות</button>
       </div>
       <section id="envelope-panel" hidden>
         <h3>הזנת מעטפות כפולות</h3>
@@ -96,18 +98,72 @@
         <button id="cancel-envelope" type="button">ביטול וחזרה למסך הוועדה</button>
       </section>
       <section id="statistics-panel" hidden>
-        <h3 tabindex="-1" id="statistics-title">נתוני השתתפות</h3>
-        <p id="statistics-status" role="status" aria-live="polite"></p>
-        <h4>נתונים כלליים</h4>
-        <div id="overall-statistics" class="statistics-card"></div>
-        <h4>נתונים לפי עיר</h4>
-        <label for="statistics-city">חיפוש עיר</label>
-        <input id="statistics-city" type="search" list="statistics-cities" autocomplete="off" maxlength="100" aria-describedby="statistics-city-help">
-        <datalist id="statistics-cities"></datalist>
-        <p id="statistics-city-help">בחר עיר מתוך ההשלמה. ההשתתפות נספרת לפי הקלפי שאליה הבוחר משויך.</p>
-        <p id="statistics-city-message" role="status"></p>
-        <div id="city-statistics" class="statistics-card" hidden></div>
-        <button id="close-statistics" type="button">חזרה למסך הוועדה</button>
+        <div class="dashboard-heading">
+          <div><p class="eyebrow">ועדת הבחירות המרכזית</p><h3 tabindex="-1" id="statistics-title">נתוני השתתפות בבחירות</h3></div>
+          <button id="close-statistics" type="button">חזרה למסך הוועדה</button>
+        </div>
+        <section class="election-overview" aria-labelledby="dashboard-election-title">
+          <h4 id="dashboard-election-title">מצב הבחירות</h4>
+          <div id="dashboard-election"></div>
+          <p id="statistics-status" role="status" aria-live="polite">טוען נתונים…</p>
+        </section>
+        <div id="dashboard-summary" class="summary-grid" aria-label="נתונים כלליים"></div>
+
+        <section class="dashboard-section" aria-labelledby="hourly-title">
+          <div class="section-heading"><div><h4 id="hourly-title">קצב ההצבעה לאורך היום</h4><p>מספר הצבעות בכל שעה והסכום המצטבר, לפי שעון ישראל.</p></div>
+            <label class="compact-control" for="hourly-view">תצוגה<select id="hourly-view"><option value="both">שעתי ומצטבר</option><option value="hourly">שעתי</option><option value="cumulative">מצטבר</option></select></label>
+          </div>
+          <div id="hourly-chart" class="chart-panel"></div>
+        </section>
+
+        <div class="dashboard-columns">
+          <section class="dashboard-section" aria-labelledby="cities-title">
+            <div class="section-heading"><div><h4 id="cities-title">השתתפות לפי עיר</h4><p>לפי הקלפי שאליה הבוחר משויך.</p></div></div>
+            <div class="filters-row">
+              <label for="statistics-city">חיפוש עיר<input id="statistics-city" type="search" autocomplete="off" maxlength="100"></label>
+              <label for="city-sort">מיון<select id="city-sort"><option value="name">שם עיר</option><option value="voted">מספר מצביעים</option><option value="percentage">אחוז הצבעה</option></select></label>
+            </div>
+            <div id="cities-table"></div>
+          </section>
+          <section class="dashboard-section" aria-labelledby="locations-title">
+            <div class="section-heading"><div><h4 id="locations-title">מקום ההצבעה בפועל</h4><p>חלוקת ההצבעות לפי מקום הרישום.</p></div></div>
+            <div id="location-chart" class="donut-layout"></div>
+          </section>
+        </div>
+
+        <section class="dashboard-section" aria-labelledby="stations-title">
+          <div class="section-heading"><div><h4 id="stations-title">פעילות לפי קלפי</h4><p>נתוני שיוך לצד ההצבעות שנרשמו בפועל.</p></div></div>
+          <div class="filters-row">
+            <label for="station-search">חיפוש מספר קלפי או עיר<input id="station-search" type="search" autocomplete="off" maxlength="100"></label>
+            <label for="station-sort">מיון<select id="station-sort"><option value="id">מספר קלפי</option><option value="percentage">אחוז השתתפות</option><option value="lastVote">פעילות אחרונה</option></select></label>
+          </div>
+          <div id="stations-table"></div>
+          <nav id="station-pagination" class="pagination" aria-label="עמודי טבלת קלפיות"></nav>
+        </section>
+
+      </section>
+      <section id="audit-panel" hidden>
+        <div class="dashboard-heading">
+          <div><p class="eyebrow">ועדת הבחירות המרכזית</p><h3 tabindex="-1" id="audit-title">יומן פעולות</h3></div>
+          <button id="close-audit" type="button">חזרה למסך הוועדה</button>
+        </div>
+        <section class="dashboard-section" aria-labelledby="audit-filters-title">
+          <div class="section-heading"><div><h4 id="audit-filters-title">סינון היומן</h4><p>היומן מציג פעולות מערכת בלבד ומסתיר מספרי זהות.</p></div></div>
+          <form id="audit-filter-form" class="audit-filters">
+            <label for="audit-action">פעולה<select id="audit-action"><option value="">כל הפעולות</option><option value="Login">התחברות</option><option value="VoterSearch">חיפוש בוחר</option><option value="VoteConfirmation">אישור הצבעה</option><option value="DoubleEnvelope">מעטפה כפולה</option><option value="DataImport">טעינת נתונים</option><option value="ElectionSchedule">קביעת מועדים</option><option value="StatisticsView">צפייה בנתונים</option><option value="AuditView">צפייה ביומן</option><option value="EmailSend">שליחת מייל</option></select></label>
+            <label for="audit-result">תוצאה<select id="audit-result"><option value="">כל התוצאות</option><option value="Success">הצלחה</option><option value="Blocked">נחסם</option><option value="Failed">כשל</option><option value="Skipped">דולג</option></select></label>
+            <label for="audit-actor">מספר קלפי<input id="audit-actor" inputmode="numeric" maxlength="10" autocomplete="off"></label>
+            <label for="audit-from">מתאריך<input id="audit-from" type="datetime-local"></label>
+            <label for="audit-to">עד תאריך<input id="audit-to" type="datetime-local"></label>
+            <div class="audit-filter-actions"><button type="submit">הצגת תוצאות</button><button id="clear-audit-filters" type="button" class="secondary-button">ניקוי</button></div>
+          </form>
+        </section>
+        <section class="dashboard-section" aria-labelledby="audit-table-title">
+          <div class="section-heading"><div><h4 id="audit-table-title">רשומות היומן</h4><p id="audit-count"></p></div></div>
+          <p id="audit-status" role="status" aria-live="polite"></p>
+          <div id="audit-table"></div>
+          <nav id="audit-pagination" class="pagination" aria-label="עמודי יומן הפעולות"></nav>
+        </section>
       </section>
     </div>
     <button id="logout" type="button">יציאה</button>

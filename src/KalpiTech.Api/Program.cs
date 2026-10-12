@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--import-kalpi-passwords").ToArray());
 // Console logging works locally without permission to write to Windows Event Log.
 builder.Logging.ClearProviders();
@@ -19,6 +20,7 @@ builder.Services.AddScoped<VoterStore>();
 builder.Services.AddScoped<VoteStore>();
 builder.Services.AddScoped<ElectionStore>();
 builder.Services.AddScoped<StatisticsStore>();
+builder.Services.AddScoped<AuditLogStore>();
 VoteConfirmationEmail.ValidateConfiguration(builder.Configuration);
 builder.Services.AddHttpClient<VoteConfirmationEmail>(client =>
 {
@@ -76,6 +78,8 @@ using (var scope = app.Services.CreateScope())
     await importConnection.OpenAsync();
     await using var importState = new MySqlCommand("SELECT COUNT(*) FROM DataImportState", importConnection);
     var uploadedDataset = Convert.ToInt32(await importState.ExecuteScalarAsync()) > 0;
+    if (!File.Exists(passwordCsv))
+        app.Logger.LogWarning("קובץ סיסמאות הקלפיות חסר: {Path}. סיסמאות קיימות במסד נשמרות; במאגר חדש יש לספק את הקובץ או להעלות אותו דרך מסך המנהל.", passwordCsv);
     if (uploadedDataset && !importOnly)
         app.Logger.LogInformation("Uploaded dataset preserved, including station passwords.");
     else if (File.Exists(passwordCsv))
@@ -84,13 +88,15 @@ using (var scope = app.Services.CreateScope())
         app.Logger.LogInformation("Kalpi password import completed. Changed accounts: {Count}.", changed);
     }
     else if (importOnly) throw new InvalidOperationException("חסר קובץ הקלפיות המקומי לטעינת סיסמאות.");
-    else app.Logger.LogInformation("Kalpi password CSV is absent; existing station passwords were preserved.");
+    if (!await app.Services.GetRequiredService<DatabaseProbe>().HasStationPasswordsAsync(CancellationToken.None))
+        app.Logger.LogWarning("לאף קלפי אין סיסמה במסד. התחברות לקלפיות אינה זמינה והמערכת אינה מוכנה לפעילות קלפיות.");
 }
 // Local one-shot import: no HTTP listener and no reset of existing accounts or votes.
 if (importOnly) return;
 
 app.Use(async (context, next) =>
 {
+    context.TraceIdentifier = Guid.NewGuid().ToString();
     if (context.Request.Path.StartsWithSegments("/api")) context.Response.Headers.CacheControl = "no-store";
     try { await next(context); }
     catch (Exception exception) when (exception is MySqlException or TimeoutException)
@@ -108,6 +114,21 @@ app.MapControllers();
 
 // Liveness: the API can answer even when MySQL is unavailable.
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+// An admin can still log in and import passwords while station readiness is 503.
+app.MapGet("/health/ready", async (DatabaseProbe database, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        if (!await database.HasStationPasswordsAsync(cancellationToken))
+            return Results.Json(new { status = "not_ready", message = "לאף קלפי אין סיסמה. יש לטעון קובץ קלפיות עם סיסמאות דרך מנהל הוועדה או לספק את הקובץ המקומי ולהפעיל מחדש." }, statusCode: 503);
+        return Results.Ok(new { status = "ok" });
+    }
+    catch (Exception exception) when (exception is MySqlException or TimeoutException)
+    {
+        return Results.Json(new { status = "unavailable", message = "השרת אינו זמין" }, statusCode: 503);
+    }
+});
 
 // Readiness: open a real connection and execute a harmless SQL query.
 app.MapGet("/health/db", async (DatabaseProbe database, ILogger<Program> logger,
