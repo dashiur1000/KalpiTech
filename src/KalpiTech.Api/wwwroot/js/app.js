@@ -431,8 +431,15 @@ function showLargeError(text) {
 
 function message(text, kind = 'info') {
   const notice = element('message');
-  notice.dataset.kind = kind;
-  notice.textContent = text;
+  if (notice) {
+    notice.dataset.kind = kind;
+    notice.textContent = text;
+  }
+  const accountNotice = element('account-message');
+  if (accountNotice) {
+    accountNotice.dataset.kind = kind;
+    accountNotice.textContent = text;
+  }
   if (kind === 'error' && text) {
     const duplicate = (text === 'הצבעה כפולה! הבוחר כבר מימש את זכות הבחירה'
       || text === 'שגיאה! הבוחר כבר הצביע ככל הנראה במקום אחר');

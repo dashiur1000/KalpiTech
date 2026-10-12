@@ -259,7 +259,10 @@ body.is-authenticated .hero-section {
 }
 
 body:not(.is-authenticated) .hero-section {
-  min-height: 480px;
+  min-height: calc(100vh - 84px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .hero-video-wrapper {
@@ -296,16 +299,115 @@ body:not(.is-authenticated) .hero-section {
   position: relative;
   z-index: 3;
   max-width: 1440px;
+  width: 100%;
   margin: 0 auto;
   padding: 48px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
+  gap: 48px;
 }
 
 .hero-intro {
-  max-width: 680px;
+  flex: 1 1 auto;
+  max-width: 780px;
+}
+
+.hero-login-column {
+  flex: 0 0 340px;
+  max-width: 350px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 5;
+}
+
+.hero-login-column .login-card {
+  margin-bottom: 0;
+  padding: 22px 20px;
+  background: rgba(10, 15, 30, 0.88);
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 229, 255, 0.12);
+}
+
+.hero-login-column .card-header-bar {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  gap: 10px;
+}
+
+.hero-login-column .card-seal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.hero-login-column .card-seal-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hero-login-column .login-card-title {
+  font-size: 1.25rem;
+}
+
+.hero-login-column .eyebrow-navy {
+  font-size: 0.72rem;
+}
+
+.hero-login-column .login-instruction {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.hero-login-column .form-group {
+  margin-bottom: 12px;
+}
+
+.hero-login-column .form-group label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.hero-login-column input {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.hero-login-column .input-with-icon input {
+  padding-inline-start: 34px;
+}
+
+.hero-login-column .input-icon {
+  inset-inline-start: 10px;
+}
+
+.hero-login-column .input-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.hero-login-column .btn {
+  padding: 8px 16px;
+  font-size: 0.88rem;
+}
+
+.hero-login-column .login-security-notice {
+  margin-top: 12px;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  gap: 8px;
+}
+
+.hero-login-column #readiness-warning:not(:empty) {
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .hero-badge-tag {
@@ -407,8 +509,7 @@ main.app-main {
 }
 
 body:not(.is-authenticated) main.app-main {
-  max-width: 580px;
-  margin-top: -36px;
+  display: none;
 }
 
 /* Base Cosmic Card */
@@ -751,11 +852,13 @@ button[type="submit"]:hover:not(:disabled) {
    7. Top Alerts & Sticky Notification
    ========================================================================== */
 /* NOTE: Errors will pop up as large dialogs, NOT at the top! */
-#message[data-kind="error"] {
+#message[data-kind="error"],
+#account-message[data-kind="error"] {
   display: none !important;
 }
 
-#message[data-kind="success"]:not(:empty) {
+#message[data-kind="success"]:not(:empty),
+#account-message[data-kind="success"]:not(:empty) {
   position: sticky;
   top: 14px;
   z-index: 100;
@@ -769,13 +872,15 @@ button[type="submit"]:hover:not(:disabled) {
 }
 
 #readiness-warning:not(:empty) {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.45);
   border-inline-start: 4px solid var(--neon-crimson);
   padding: 12px 18px;
   border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+  backdrop-filter: blur(16px);
 }
 
 /* ==========================================================================
@@ -1670,14 +1775,21 @@ button[type="submit"]:hover:not(:disabled) {
    12. LARGE POPUP MODAL FOR ERRORS (השגיאות קופצות בגדול על המסך)
    ========================================================================== */
 .cosmic-modal {
+  position: fixed !important;
+  top: 20vh !important;
+  inset-block-start: 20vh !important;
+  inset-block-end: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
   width: min(520px, calc(100% - 32px));
   border-radius: 16px;
   padding: 32px;
   color: #ffffff;
   background: rgba(11, 16, 30, 0.95);
   backdrop-filter: blur(28px);
-  position: relative;
   overflow: hidden;
+  z-index: 10000;
 }
 
 .cosmic-modal::backdrop {
@@ -1760,8 +1872,9 @@ button[type="submit"]:hover:not(:disabled) {
   inset: 0;
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 18vh;
   background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(10px);
 }
@@ -1910,6 +2023,21 @@ button[type="submit"]:hover:not(:disabled) {
    15. Responsive Breakpoints
    ========================================================================== */
 @media (max-width: 1100px) {
+  .hero-content-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 36px;
+    padding: 36px 20px;
+  }
+  .hero-intro {
+    max-width: 100%;
+  }
+  .hero-login-column {
+    max-width: 360px;
+    width: 100%;
+    margin: 0 auto;
+    flex: 1 1 auto;
+  }
   .admin-portal-grid {
     grid-template-columns: 1fr;
   }
