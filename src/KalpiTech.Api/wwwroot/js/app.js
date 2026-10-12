@@ -252,7 +252,7 @@ function renderStations() {
     : sort === 'lastVote' ? (new Date(b.lastVoteAt || 0) - new Date(a.lastVoteAt || 0)) : a.kalpiId - b.kalpiId);
   const pages = Math.max(1, Math.ceil(rows.length / stationPageSize)); stationPage = Math.min(stationPage, pages);
   const page = rows.slice((stationPage - 1) * stationPageSize, stationPage * stationPageSize);
-  const mapped = page.map(row => { const values = [heNumber.format(row.kalpiId), row.city, row.kalpiType === 'Accessible' ? 'נגישה' : 'רגילה',
+  const mapped = page.map(row => { const values = [row.kalpiId, row.city, row.kalpiType === 'Accessible' ? 'נגישה' : 'רגילה',
     heNumber.format(row.assigned.total), heNumber.format(row.assigned.voted), formatPercent(row.assigned.percentage), heNumber.format(row.actualVotes),
     row.lastVoteAt ? formatDate(row.lastVoteAt) : 'אין פעילות']; values.inactive = !row.lastVoteAt; return values; });
   element('stations-table').replaceChildren(table(['קלפי', 'עיר', 'סוג', 'בעלי זכות', 'הצביעו', 'אחוז', 'נרשמו בפועל', 'פעילות אחרונה'], mapped));
