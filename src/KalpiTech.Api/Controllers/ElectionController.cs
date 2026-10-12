@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using KalpiTech.Api.Contracts;
 using KalpiTech.Api.Data;
 using KalpiTech.Api.Models;
@@ -10,7 +11,7 @@ namespace KalpiTech.Api.Controllers;
 [ApiController]
 [Route("api/election")]
 [Authorize]
-public sealed class ElectionController(ElectionStore elections, TimeProvider clock) : ControllerBase
+public sealed class ElectionController(ElectionStore elections, TimeProvider clock, AuditLogStore audit) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Read(CancellationToken token)
@@ -35,7 +36,17 @@ public sealed class ElectionController(ElectionStore elections, TimeProvider clo
             return BadRequest(new { message = "יש להזין תאריך ושעה תקינים לפי שעון ישראל. שעה שאינה קיימת או מופיעה פעמיים במעבר שעון אינה נתמכת." });
         if (end <= start) return BadRequest(new { message = "מועד הסיום חייב להיות מאוחר ממועד ההתחלה." });
         var error = await elections.SaveAsync(new ElectionSchedule(start, end), token);
-        if (error is not null) return Conflict(new { message = error });
+        if (error is not null)
+        {
+            await WriteAudit(AuditResults.Blocked, "ניסיון לשנות מועדים לאחר הנעילה או למועד לא תקין");
+            return Conflict(new { message = error });
+        }
+        await WriteAudit(AuditResults.Success, "מועדי הבחירות נשמרו");
         return Ok(new { message = "מועדי הבחירות נשמרו בהצלחה." });
+
+        Task WriteAudit(string result, string details) => audit.TryWriteAsync(new(
+            AuditActions.ElectionSchedule, result, User.FindFirstValue(ClaimTypes.Role),
+            User.FindFirstValue(ClaimTypes.NameIdentifier), "Election", "1", details,
+            HttpContext.TraceIdentifier));
     }
 }
