@@ -43,6 +43,13 @@ let auditSequence = 0;
 const heNumber = new Intl.NumberFormat('he-IL', { maximumFractionDigits: 2 });
 const israelDateTime = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short' });
 
+function updateLiveClock() {
+  const clockEl = element('live-clock-text');
+  if (clockEl) clockEl.textContent = israelDateTime.format(new Date());
+}
+setInterval(updateLiveClock, 1000);
+updateLiveClock();
+
 function node(tag, text, className) {
   const result = document.createElement(tag);
   if (text !== undefined) result.textContent = text;
@@ -252,7 +259,7 @@ function renderStations() {
     : sort === 'lastVote' ? (new Date(b.lastVoteAt || 0) - new Date(a.lastVoteAt || 0)) : a.kalpiId - b.kalpiId);
   const pages = Math.max(1, Math.ceil(rows.length / stationPageSize)); stationPage = Math.min(stationPage, pages);
   const page = rows.slice((stationPage - 1) * stationPageSize, stationPage * stationPageSize);
-  const mapped = page.map(row => { const values = [heNumber.format(row.kalpiId), row.city, row.kalpiType === 'Accessible' ? 'נגישה' : 'רגילה',
+  const mapped = page.map(row => { const values = [row.kalpiId, row.city, row.kalpiType === 'Accessible' ? 'נגישה' : 'רגילה',
     heNumber.format(row.assigned.total), heNumber.format(row.assigned.voted), formatPercent(row.assigned.percentage), heNumber.format(row.actualVotes),
     row.lastVoteAt ? formatDate(row.lastVoteAt) : 'אין פעילות']; values.inactive = !row.lastVoteAt; return values; });
   element('stations-table').replaceChildren(table(['קלפי', 'עיר', 'סוג', 'בעלי זכות', 'הצביעו', 'אחוז', 'נרשמו בפועל', 'פעילות אחרונה'], mapped));
@@ -314,20 +321,136 @@ function updateVoteButton() {
     : electionActive ? '' : 'אישור הצבעה אפשרי בזמן פעילות הבחירות בלבד.';
 }
 
+let fireworksActive = false;
+let fireworksAnimId = null;
+
+function launchCelebration(messageText) {
+  const overlay = element('celebration-overlay');
+  const canvas = element('fireworks-canvas');
+  if (!overlay || !canvas) return;
+
+  if (messageText) element('celebration-message').textContent = messageText;
+  overlay.hidden = false;
+  fireworksActive = true;
+
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+
+  const particles = [];
+  const colors = ['#00e5ff', '#38bdf8', '#8b5cf6', '#c084fc', '#10b981', '#fbbf24', '#f43f5e', '#ffffff'];
+
+  function createBurst(x, y) {
+    const count = 80 + Math.floor(Math.random() * 40);
+    const baseColor = colors[Math.floor(Math.random() * colors.length)];
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 7 + 2;
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        alpha: 1,
+        color: Math.random() > 0.35 ? baseColor : colors[Math.floor(Math.random() * colors.length)],
+        radius: Math.random() * 2.8 + 1.2,
+        decay: Math.random() * 0.018 + 0.012
+      });
+    }
+  }
+
+  let lastBurst = 0;
+  function animate(timestamp) {
+    if (!fireworksActive) return;
+    if (timestamp - lastBurst > 320) {
+      lastBurst = timestamp;
+      createBurst(
+        canvas.width * (0.2 + Math.random() * 0.6),
+        canvas.height * (0.18 + Math.random() * 0.42)
+      );
+    }
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.07;
+      p.vx *= 0.985;
+      p.vy *= 0.985;
+      p.alpha -= p.decay;
+
+      if (p.alpha <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    fireworksAnimId = requestAnimationFrame(animate);
+  }
+
+  createBurst(canvas.width * 0.5, canvas.height * 0.3);
+  createBurst(canvas.width * 0.35, canvas.height * 0.25);
+  createBurst(canvas.width * 0.65, canvas.height * 0.28);
+  fireworksAnimId = requestAnimationFrame(animate);
+
+  setTimeout(() => { if (fireworksActive) closeCelebration(); }, 7000);
+}
+
+function closeCelebration() {
+  fireworksActive = false;
+  if (fireworksAnimId) cancelAnimationFrame(fireworksAnimId);
+  const overlay = element('celebration-overlay');
+  if (overlay) overlay.hidden = true;
+}
+
+const closeCelBtn = element('close-celebration');
+if (closeCelBtn) closeCelBtn.addEventListener('click', closeCelebration);
+
+function showLargeError(text) {
+  const modal = element('large-error-modal');
+  const msg = element('large-error-text');
+  if (modal && msg && text) {
+    msg.textContent = text;
+    if (!modal.open) modal.showModal();
+  }
+}
+
 function message(text, kind = 'info') {
   const notice = element('message');
   notice.dataset.kind = kind;
   notice.textContent = text;
-  // Results must be visible even when the operator is at the bottom of the form.
-  if (text) notice.scrollIntoView({ block: 'center', behavior: 'auto' });
-  // Keep the required wording and make duplicate-vote errors explicit at the point of action.
-  const duplicate = kind === 'error' && (text === 'הצבעה כפולה! הבוחר כבר מימש את זכות הבחירה'
-    || text === 'שגיאה! הבוחר כבר הצביע ככל הנראה במקום אחר');
-  const dialog = element('duplicate-vote-dialog');
-  if (duplicate) {
-    element('duplicate-vote-message').textContent = text;
-    if (!dialog.open) dialog.showModal();
-  } else if (dialog.open) dialog.close();
+  if (kind === 'error' && text) {
+    const duplicate = (text === 'הצבעה כפולה! הבוחר כבר מימש את זכות הבחירה'
+      || text === 'שגיאה! הבוחר כבר הצביע ככל הנראה במקום אחר');
+    if (duplicate) {
+      const dialog = element('duplicate-vote-dialog');
+      if (dialog) {
+        element('duplicate-vote-message').textContent = text;
+        if (!dialog.open) dialog.showModal();
+      }
+    } else {
+      showLargeError(text);
+    }
+  } else if (!text) {
+    const errorModal = element('large-error-modal');
+    if (errorModal && errorModal.open) errorModal.close();
+    const dupModal = element('duplicate-vote-dialog');
+    if (dupModal && dupModal.open) dupModal.close();
+  }
 }
 
 async function api(path, body) {
@@ -374,6 +497,7 @@ function showAccount(account) {
   currentAccount = account;
   accountSequence++;
   clearVoter();
+  document.body.classList.toggle('is-authenticated', !!account);
   element('login').hidden = !!account;
   element('account').hidden = !account;
   element('admin-tools').hidden = account?.role !== 'Admin';
@@ -384,6 +508,9 @@ function showAccount(account) {
     element('account-title').textContent = { Admin: 'ועדת הבחירות המרכזית', Regular: 'קלפי רגילה', Accessible: 'קלפי נגישה' }[account.role];
     element('account-name').textContent = account.role === 'Admin' ? account.identifier : `מספר קלפי: ${account.kalpiId}`;
     refreshElection(true).catch(handleElectionError);
+    if (account.role === 'Admin') {
+      setTimeout(() => { if (!statisticsOpen && !auditOpen) element('open-statistics').click(); }, 60);
+    }
   }
 }
 
@@ -529,6 +656,7 @@ element('confirm-voter').addEventListener('click', async () => {
     // Only the selected Id is submitted. The server supplies time and actual station.
     const result = await requestApi('/api/voters/confirm', { id: selectedVoterId });
     message(result.message, 'success');
+    launchCelebration(result.message);
   } catch (error) {
     message(error.message, 'error');
     if (error.status === 401) { showAccount(null); await refreshToken().catch(() => {}); }
@@ -554,6 +682,10 @@ element('logout').addEventListener('click', async () => {
     if (error.status === 401) { showAccount(null); await refreshToken().catch(() => {}); }
     message(error.message, 'error');
   }
+});
+
+document.querySelectorAll('.btn-logout-action').forEach(btn => {
+  btn.addEventListener('click', () => element('logout').click());
 });
 
 async function start() {
@@ -675,6 +807,7 @@ element('envelope-confirm-form').addEventListener('submit', async event => {
     // The server supplies both the committee location (0) and VotedAt.
     const result = await requestApi('/api/envelopes/confirm', { id: selectedEnvelopeId });
     message(result.message, 'success');
+    launchCelebration(result.message);
   } catch (error) {
     message(error.message, 'error');
     if (error.status === 401) { showAccount(null); await refreshToken().catch(() => {}); }
