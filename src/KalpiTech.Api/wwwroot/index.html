@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>קלפי טק — ועדת הבחירות המרכזית לכנסת</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/site.css?v=17.0">
+  <script src="/js/app.js?v=17.0" defer></script>
+</head>
+<body class="site-body">
+  <!-- Government Official Top Bar -->
+  <aside class="gov-topbar" aria-label="הודעת אתר ממשלתי רשמי">
+    <div class="gov-topbar-inner">
+      <div class="gov-topbar-right">
+        <span class="gov-flag" aria-hidden="true">🇮🇱</span>
+        <span class="gov-official-text">מדינת ישראל • ועדת הבחירות המרכזית לכנסת • אתר רשמי ומאובטח</span>
+      </div>
+      <div class="gov-topbar-left">
+        <span class="gov-security-pill">
+          <svg class="icon-svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          INTERCHAIN SECURED • TLS 1.3
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Cosmos Executive Header -->
+  <header class="wh-header">
+    <div class="wh-header-inner">
+      <div class="wh-brand">
+        <img class="wh-logo" src="/assets/logo.svg" alt="סמל ועדת הבחירות המרכזית">
+        <div class="wh-brand-text">
+          <h1 class="wh-title">קלפי טק</h1>
+          <p class="wh-subtitle">מערכת לניהול רישום הצבעות ופיקוח על יום הבחירות</p>
+        </div>
+      </div>
+      <div class="wh-header-status">
+        <div class="wh-status-badge">
+          <span class="status-pulse-dot" aria-hidden="true"></span>
+          <span class="status-badge-text">רשת מקוונת בזמן אמת</span>
+        </div>
+        <div class="wh-clock-badge" id="live-clock-badge">
+          <svg class="icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="live-clock-text">שעון ישראל</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section with Background Video (Login state) -->
+  <section class="hero-section" id="hero-section" aria-label="פתיח יום הבחירות">
+    <div class="hero-video-wrapper">
+      <video class="hero-video" autoplay muted loop playsinline preload="auto">
+        <source src="/assets/hero-video.mp4" type="video/mp4">
+      </video>
+      <div class="hero-video-overlay"></div>
+    </div>
+
+    <div class="hero-content-container">
+      <div class="hero-intro" id="hero-intro">
+        <h2 class="hero-headline">טוהר הבחירות, אמינות ודיוק בזמן אמת</h2>
+        <p class="hero-lead">
+          המערכת המרכזית לניהול יום הבחירות: זיהוי בוחרים ממוחשב, מניעת הצבעות כפולות, סנכרון נתונים שוטף ופיקוח חי של ועדת הבחירות המרכזית.
+        </p>
+        <div class="hero-features-list">
+          <div class="hero-feature-item">
+            <div class="feature-icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <strong>זיהוי בוחר ממוחשב</strong>
+              <span>בדיקת זכאות מיידית ומניעת הצבעה כפולה</span>
+            </div>
+          </div>
+          <div class="hero-feature-item">
+            <div class="feature-icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <strong>חלון זמנים קפדני</strong>
+              <span>סנכרון מלא לפי שעון ישראל ונעילה אוטומטית</span>
+            </div>
+          </div>
+          <div class="hero-feature-item">
+            <div class="feature-icon-box" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div>
+              <strong>יומן פעולות חתום</strong>
+              <span>מעקב בלתי ניתן לשינוי של כלל פעולות המערכת</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Left Side: Secure Login Column Over Background Video -->
+      <div class="hero-login-column">
+        <!-- System Alerts for Login & System Readiness -->
+        <p id="readiness-warning" class="alert-box" role="alert" hidden></p>
+        <p id="message" class="alert-box" role="status" aria-live="polite"></p>
+
+        <!-- Secure Login Portal -->
+        <section id="login" class="presidential-card login-card" hidden>
+          <div class="card-header-bar">
+            <div class="card-seal-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <span class="eyebrow-navy">שער כניסה מאובטח</span>
+              <h2 class="login-card-title">התחברות</h2>
+            </div>
+          </div>
+          <p class="login-instruction">הגישה מיועדת לחברי ועדת הבחירות המרכזית ולצוותי הקלפיות המורשים בלבד.</p>
+          
+          <form id="login-form" class="presidential-form">
+            <div class="form-group">
+              <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
+              <div class="input-with-icon">
+                <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required placeholder="לדוגמה: 1001 או vahadathabchirot@gmail.com">
+                <span class="input-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">סיסמה</label>
+              <div class="input-with-icon">
+                <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="הזן סיסמה">
+                <span class="input-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">התחברות</button>
+          </form>
+
+          <div class="login-security-notice">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>הזנת פרטים כוזבים או ניסיון גישה בלתי מורשה מהווים עבירה פלילית לפי חוק הבחירות לכנסת.</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Application Workspace -->
+  <main class="app-main">
+    <p id="account-message" class="alert-box" role="status" aria-live="polite"></p>
+
+    <!-- Authenticated Executive Portal -->
+    <section id="account" class="account-workspace" hidden>
+      <!-- Top Executive Briefing Bar -->
+      <div class="executive-briefing-bar">
+        <div class="executive-identity">
+          <div class="identity-emblem">
+            <img src="/assets/logo.svg" alt="סמל" class="identity-logo">
+          </div>
+          <div>
+            <span class="eyebrow-navy">זהות פעילה במערכת</span>
+            <h2 id="account-title" class="executive-title"></h2>
+            <p id="account-name" class="executive-identifier"></p>
+          </div>
+        </div>
+        <div class="executive-actions">
+          <button id="logout" type="button" class="btn btn-outline-danger">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            יציאה
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Election Status Briefing Card -->
+      <section class="presidential-card election-briefing-card" aria-label="מצב הבחירות">
+        <div class="card-header-bar">
+          <div class="card-seal-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <span class="eyebrow-navy">שעון הבחירות הרשמי</span>
+            <h3 class="card-section-title">מצב הבחירות</h3>
+          </div>
+        </div>
+        <div class="election-briefing-grid">
+          <div class="briefing-box">
+            <span class="briefing-label">סטטוס נוכחי</span>
+            <p id="election-status" role="status" class="briefing-value-status"></p>
+          </div>
+          <div class="briefing-box">
+            <span class="briefing-label">חלון זמני הבחירות</span>
+            <p id="election-times" class="briefing-value"></p>
+          </div>
+          <div class="briefing-box briefing-box-wide">
+            <span class="briefing-label">נעילת טעינה ומעטפות כפולות</span>
+            <p id="election-window" class="briefing-value-subtle"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Poll Workers Workspace -->
+      <div id="poll-tools" hidden>
+        <!-- Voter Search Box -->
+        <section id="voter-search" class="presidential-card poll-card">
+          <div class="card-header-bar">
+            <div class="card-seal-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div>
+              <span class="eyebrow-navy">זיהוי בוחר בקלפי</span>
+              <h3 class="card-section-title">חיפוש בוחר</h3>
+            </div>
+          </div>
+          <form id="voter-form" class="presidential-form">
+            <div class="form-group">
+              <div class="input-header-row">
+                <label for="voter-id" class="giant-label">מספר זהות</label>
+                <span id="voter-id-help" class="side-subtle-hint">הזן תעודת זהות</span>
+              </div>
+              <div class="giant-input-wrapper">
+                <input id="voter-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required aria-describedby="voter-id-help" class="giant-numeric-input" placeholder="הזן תעודת זהות">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-giant" style="width: 100%;">חיפוש בוחר</button>
+          </form>
+        </section>
+
+        <!-- Voter Confirmation Box -->
+        <section id="voter-confirmation" class="presidential-card confirmation-card" hidden>
+          <div class="card-header-bar confirmation-header-bar">
+            <div class="card-seal-icon success" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div>
+              <span class="eyebrow-success">זיהוי אומת בהצלחה</span>
+              <h3 tabindex="-1" id="confirmation-title" class="confirmation-title">אישור הצבעה</h3>
+            </div>
+          </div>
+
+          <div class="voter-badge-banner">
+            <div class="voter-name-box">
+              <span class="badge-label">שם הבוחר</span>
+              <p id="voter-name" class="voter-full-name"></p>
+            </div>
+            <div class="voter-details-box">
+              <span class="badge-label">פרטי זיהוי ושיוך</span>
+              <p id="voter-details" class="voter-details-line"></p>
+            </div>
+          </div>
+
+          <div class="confirmation-instruction-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>מצביע זוהה! אנא הגש לו את מעטפת ההצבעה ולאחר הכנסתה לקלפי לחץ על אישור או ביטול במקרה שאינו חפץ להצביע כרגע.</p>
+          </div>
+
+          <p id="vote-availability" role="status" class="vote-availability-text"></p>
+
+          <div class="button-row">
+            <button id="confirm-voter" type="button" class="btn btn-success btn-action" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              אישור
+            </button>
+            <button id="cancel-voter" type="button" class="btn btn-secondary btn-action">ביטול</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Admin Tools Workspace with Sidebar Navigation -->
+      <div id="admin-tools" hidden>
+        <div class="admin-portal-grid">
+          <!-- תפריט צד (Sidebar) -->
+          <aside class="admin-sidebar" aria-label="תפריט ניהול ומנהלה">
+            <div class="sidebar-brand-card">
+              <span class="sidebar-badge">תפריט ועדת הבחירות</span>
+              <h3 class="sidebar-heading">ניהול שוטף</h3>
+            </div>
+
+            <!-- הפעלת יום הבחירות — קביעת מועדים -->
+            <section class="sidebar-section-card">
+              <div class="sidebar-section-header">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <h4>הפעלת יום הבחירות — קביעת מועדים</h4>
+              </div>
+              <form id="election-form" class="presidential-form sidebar-form">
+                <div class="form-group-compact">
+                  <label for="election-start">מועד תחילת הבחירות (שעון ישראל)</label>
+                  <input id="election-start" type="datetime-local" required>
+                </div>
+                <div class="form-group-compact">
+                  <label for="election-end">מועד סיום הבחירות (שעון ישראל)</label>
+                  <input id="election-end" type="datetime-local" required>
+                </div>
+                <p class="sidebar-subtext">המעברים אוטומטיים לפי שעון השרת. לאחר ההתחלה לא ניתן לשנות את המועדים.</p>
+                <button id="save-election" type="submit" class="btn btn-primary btn-sm">שמירת מועדי הבחירות</button>
+              </form>
+            </section>
+
+            <!-- עדכון נתונים לבסיס הנתונים -->
+            <section class="sidebar-section-card">
+              <div class="sidebar-section-header">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <h4>עדכון נתונים (CSV)</h4>
+              </div>
+              <p class="sidebar-subtext">העלאת קובצי קלפיות ובוחרים חדשים טרם פתיחת יום הבחירות.</p>
+              <button id="open-import" type="button" class="btn btn-outline-primary btn-sm">עדכון נתונים לבסיס הנתונים</button>
+              
+              <!-- Collapsible Import Panel -->
+              <section id="import-panel" class="sidebar-import-subpanel" hidden>
+                <h5>בחירת קובצי CSV</h5>
+                <p class="sidebar-subtext">קובצי UTF-8 בלבד. בקובץ הקלפיות PasswordHash מכיל את הסיסמאות; השרת שומר גיבובים בלבד. כל הבוחרים בקובץ חייבים להיות ללא הצבעה.</p>
+                <form id="import-form" class="presidential-form">
+                  <div class="form-group-compact">
+                    <label for="kalpi-file">קובץ קלפיות — kalpi.csv (עד 5 MB)</label>
+                    <input id="kalpi-file" type="file" accept=".csv" required class="file-input-compact">
+                  </div>
+                  <div class="form-group-compact">
+                    <label for="people-file">קובץ בוחרים — people.csv (עד 20 MB)</label>
+                    <input id="people-file" type="file" accept=".csv" required class="file-input-compact">
+                  </div>
+                  <div class="sidebar-btn-row">
+                    <button type="submit" class="btn btn-primary btn-sm">בדיקה וטעינת הנתונים</button>
+                    <button id="cancel-import" type="button" class="btn btn-secondary btn-sm">ביטול טעינה</button>
+                  </div>
+                </form>
+              </section>
+            </section>
+
+            <!-- הזנת מעטפות כפולות -->
+            <section class="sidebar-section-card">
+              <div class="sidebar-section-header">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <h4>הזנת מעטפות כפולות</h4>
+              </div>
+              <p class="sidebar-subtext">הזנת מעטפות כפולות זמינה מתחילת הבחירות ולמשך 36 שעות. יש לשמור מועדי התחלה וסיום תקינים; הכפתור יופעל אוטומטית בתחילת החלון.</p>
+              <button id="open-envelopes" type="button" class="btn btn-outline-primary btn-sm" disabled>הזנת מעטפות כפולות</button>
+            </section>
+
+            <!-- קישורי ניווט מהירים בתפריט הצד -->
+            <section class="sidebar-section-card">
+              <div class="sidebar-section-header">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <h4>תצוגה ובקרה</h4>
+              </div>
+              <div class="sidebar-nav-buttons">
+                <button id="open-statistics" type="button" class="sidebar-nav-btn">
+                  <span>📊 צפייה בנתונים</span>
+                  <span class="nav-arrow" aria-hidden="true">←</span>
+                </button>
+                <button id="open-audit" type="button" class="sidebar-nav-btn">
+                  <span>🛡️ יומן פעולות</span>
+                  <span class="nav-arrow" aria-hidden="true">←</span>
+                </button>
+              </div>
+            </section>
+          </aside>
+
+          <!-- שטח העבודה המרכזי (Front Stage / הפרונט) -->
+          <div class="admin-front-stage">
+            <!-- מסך הוועדה הראשי -->
+            <div id="admin-menu">
+              <div class="front-welcome-banner">
+                <div class="front-welcome-header">
+                  <div>
+                    <span class="eyebrow-navy">ועדת הבחירות המרכזית • חדר מצב נתונים</span>
+                    <h3 class="front-heading">נתוני השתתפות בבחירות בזמן אמת</h3>
+                    <p class="front-subheading">נתוני השתתפות, קצב הצבעה ופעילות קלפיות בפריסה ארצית שוטפת.</p>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-launch-stats" onclick="document.getElementById('open-statistics').click()">
+                    צפייה בנתונים בזמן אמת ←
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Double Envelope Operations Panel -->
+            <section id="envelope-panel" class="presidential-card envelope-panel" hidden>
+              <div class="card-header-bar">
+                <div class="card-seal-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <div>
+                  <span class="eyebrow-navy">רישום מעטפות חיצוניות</span>
+                  <h3 class="card-section-title">הזנת מעטפות כפולות</h3>
+                </div>
+              </div>
+              <p id="envelope-availability" role="status" class="envelope-status-badge"></p>
+              
+              <form id="envelope-search-form" class="presidential-form">
+                <div class="form-group">
+                  <div class="input-header-row">
+                    <label for="envelope-id">מספר זהות מתוך המעטפה</label>
+                    <span class="side-subtle-hint">הזן תעודת זהות</span>
+                  </div>
+                  <input id="envelope-id" type="text" inputmode="numeric" pattern="[0-9]{9}" minlength="9" maxlength="9" autocomplete="off" required placeholder="הזן תעודת זהות" class="giant-numeric-input">
+                </div>
+                <button id="search-envelope" type="submit" class="btn btn-primary" disabled style="width: 100%;">חיפוש בוחר למעטפה כפולה</button>
+              </form>
+
+              <form id="envelope-confirm-form" class="presidential-form envelope-confirm-box" hidden>
+                <h4 id="envelope-confirm-title" tabindex="-1" class="confirm-subtitle">אישור מעטפה כפולה</h4>
+                <div class="voter-badge-banner">
+                  <div>
+                    <span class="badge-label">שם הבוחר</span>
+                    <p id="envelope-voter-name" class="voter-full-name"></p>
+                  </div>
+                  <div>
+                    <span class="badge-label">פרטי זיהוי</span>
+                    <p id="envelope-voter-details" class="voter-details-line"></p>
+                  </div>
+                </div>
+                <div class="confirmation-instruction-box">
+                  <p>מקום הרישום: 0000 — ועדת הבחירות. בדוק את פרטי הבוחר לפני אישור הרישום.</p>
+                </div>
+                <button id="confirm-envelope" type="submit" class="btn btn-success" disabled style="width: 100%;">אישור מעטפה כפולה</button>
+              </form>
+
+              <div style="margin-top: 14px;">
+                <button id="cancel-envelope" type="button" class="btn btn-secondary">ביטול וחזרה למסך הוועדה</button>
+              </div>
+            </section>
+
+            <!-- Executive Real-Time Statistics Dashboard (Front Stage) -->
+            <section id="statistics-panel" class="dashboard-panel" hidden>
+              <div class="dashboard-heading">
+                <div class="dashboard-heading-title">
+                  <img src="/assets/logo.svg" alt="סמל" class="dashboard-heading-logo">
+                  <div>
+                    <p class="eyebrow">ועדת הבחירות המרכזית</p>
+                    <h3 tabindex="-1" id="statistics-title">נתוני השתתפות בבחירות</h3>
+                  </div>
+                </div>
+                <!-- כפתור החזרה למסך הוועדה וכפתור היציאה אחד ליד השני! -->
+                <div class="header-action-group">
+                  <button id="close-statistics" type="button" class="btn btn-outline-primary">חזרה למסך הוועדה</button>
+                  <button type="button" class="btn btn-outline-danger btn-logout-action">יציאה</button>
+                </div>
+              </div>
+
+              <section class="election-overview" aria-labelledby="dashboard-election-title">
+                <h4 id="dashboard-election-title">מצב הבחירות</h4>
+                <div id="dashboard-election"></div>
+                <p id="statistics-status" role="status" aria-live="polite">טוען נתונים…</p>
+              </section>
+
+              <div id="dashboard-summary" class="summary-grid" aria-label="נתונים כלליים"></div>
+
+              <section class="dashboard-section" aria-labelledby="hourly-title">
+                <div class="section-heading">
+                  <div>
+                    <h4 id="hourly-title">קצב ההצבעה לאורך היום</h4>
+                    <p>מספר הצבעות בכל שעה והסכום המצטבר, לפי שעון ישראל.</p>
+                  </div>
+                  <label class="compact-control" for="hourly-view">
+                    תצוגה
+                    <select id="hourly-view">
+                      <option value="both">שעתי ומצטבר</option>
+                      <option value="hourly">שעתי</option>
+                      <option value="cumulative">מצטבר</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="hourly-chart" class="chart-panel"></div>
+              </section>
+
+              <div class="dashboard-columns">
+                <section class="dashboard-section" aria-labelledby="cities-title">
+                  <div class="section-heading">
+                    <div>
+                      <h4 id="cities-title">השתתפות לפי עיר</h4>
+                      <p>לפי הקלפי שאליה הבוחר משויך.</p>
+                    </div>
+                  </div>
+                  <div class="filters-row">
+                    <label for="statistics-city">חיפוש עיר<input id="statistics-city" type="search" autocomplete="off" maxlength="100" placeholder="הקלד שם ישוב..."></label>
+                    <label for="city-sort">מיון<select id="city-sort"><option value="name">שם עיר</option><option value="voted">מספר מצביעים</option><option value="percentage">אחוז הצבעה</option></select></label>
+                  </div>
+                  <div id="cities-table"></div>
+                </section>
+                
+                <section class="dashboard-section" aria-labelledby="locations-title">
+                  <div class="section-heading">
+                    <div>
+                      <h4 id="locations-title">מקום ההצבעה בפועל</h4>
+                      <p>חלוקת ההצבעות לפי מקום הרישום.</p>
+                    </div>
+                  </div>
+                  <div id="location-chart" class="donut-layout"></div>
+                </section>
+              </div>
+
+              <section class="dashboard-section" aria-labelledby="stations-title">
+                <div class="section-heading">
+                  <div>
+                    <h4 id="stations-title">פעילות לפי קלפי</h4>
+                    <p>נתוני שיוך לצד ההצבעות שנרשמו בפועל.</p>
+                  </div>
+                </div>
+                <div class="filters-row">
+                  <label for="station-search">חיפוש מספר קלפי או עיר<input id="station-search" type="search" autocomplete="off" maxlength="100" placeholder="הזן מספר או עיר..."></label>
+                  <label for="station-sort">מיון<select id="station-sort"><option value="id">מספר קלפי</option><option value="percentage">אחוז השתתפות</option><option value="lastVote">פעילות אחרונה</option></select></label>
+                </div>
+                <div id="stations-table"></div>
+                <nav id="station-pagination" class="pagination" aria-label="עמודי טבלת קלפיות"></nav>
+              </section>
+            </section>
+
+            <!-- Executive Audit Log Panel (Front Stage) -->
+            <section id="audit-panel" class="dashboard-panel" hidden>
+              <div class="dashboard-heading">
+                <div class="dashboard-heading-title">
+                  <img src="/assets/logo.svg" alt="סמל" class="dashboard-heading-logo">
+                  <div>
+                    <p class="eyebrow">ועדת הבחירות המרכזית</p>
+                    <h3 tabindex="-1" id="audit-title">יומן פעולות</h3>
+                  </div>
+                </div>
+                <!-- כפתור החזרה למסך הוועדה וכפתור היציאה אחד ליד השני! -->
+                <div class="header-action-group">
+                  <button id="close-audit" type="button" class="btn btn-outline-primary">חזרה למסך הוועדה</button>
+                  <button type="button" class="btn btn-outline-danger btn-logout-action">יציאה</button>
+                </div>
+              </div>
+
+              <section class="dashboard-section" aria-labelledby="audit-filters-title">
+                <div class="section-heading">
+                  <div>
+                    <h4 id="audit-filters-title">סינון היומן</h4>
+                    <p>היומן מציג פעולות מערכת בלבד ומסתיר מספרי זהות.</p>
+                  </div>
+                </div>
+                <form id="audit-filter-form" class="audit-filters">
+                  <label for="audit-action">פעולה
+                    <select id="audit-action">
+                      <option value="">כל הפעולות</option>
+                      <option value="Login">התחברות</option>
+                      <option value="VoterSearch">חיפוש בוחר</option>
+                      <option value="VoteConfirmation">אישור הצבעה</option>
+                      <option value="DoubleEnvelope">מעטפה כפולה</option>
+                      <option value="DataImport">טעינת נתונים</option>
+                      <option value="ElectionSchedule">קביעת מועדים</option>
+                      <option value="StatisticsView">צפייה בנתונים</option>
+                      <option value="AuditView">צפייה ביומן</option>
+                      <option value="EmailSend">שליחת מייל</option>
+                    </select>
+                  </label>
+                  <label for="audit-result">תוצאה
+                    <select id="audit-result">
+                      <option value="">כל התוצאות</option>
+                      <option value="Success">הצלחה</option>
+                      <option value="Blocked">נחסם</option>
+                      <option value="Failed">כשל</option>
+                      <option value="Skipped">דולג</option>
+                    </select>
+                  </label>
+                  <label for="audit-actor">מספר קלפי<input id="audit-actor" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="מספר"></label>
+                  <label for="audit-from">מתאריך<input id="audit-from" type="datetime-local"></label>
+                  <label for="audit-to">עד תאריך<input id="audit-to" type="datetime-local"></label>
+                  <div class="audit-filter-actions">
+                    <button type="submit" class="btn btn-primary">הצגת תוצאות</button>
+                    <button id="clear-audit-filters" type="button" class="btn btn-secondary secondary-button">ניקוי</button>
+                  </div>
+                </form>
+              </section>
+
+              <section class="dashboard-section" aria-labelledby="audit-table-title">
+                <div class="section-heading">
+                  <div>
+                    <h4 id="audit-table-title">רשומות היומן</h4>
+                    <p id="audit-count"></p>
+                  </div>
+                </div>
+                <p id="audit-status" role="status" aria-live="polite"></p>
+                <div id="audit-table"></div>
+                <nav id="audit-pagination" class="pagination" aria-label="עמודי יומן הפעולות"></nav>
+              </section>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <noscript>יש להפעיל JavaScript בדפדפן כדי להשתמש במערכת.</noscript>
+  </main>
+
+  <!-- Large Popup Modal for System Errors (השגיאות קופצות בגדול על המסך) -->
+  <dialog id="large-error-modal" class="cosmic-modal error-modal" aria-labelledby="large-error-title" aria-describedby="large-error-text">
+    <div class="modal-error-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <span class="eyebrow-error">התראת מערכת</span>
+    <h2 id="large-error-title">שגיאה בפעולה</h2>
+    <p id="large-error-text" class="modal-error-message"></p>
+    <form method="dialog" class="modal-error-actions">
+      <button class="btn btn-danger btn-modal-close" autofocus>הבנתי, סגירה</button>
+    </form>
+  </dialog>
+
+  <!-- Duplicate Vote Dialog (kept for compatibility) -->
+  <dialog id="duplicate-vote-dialog" class="cosmic-modal error-modal" aria-labelledby="duplicate-vote-title" aria-describedby="duplicate-vote-message">
+    <div class="modal-error-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <span class="eyebrow-error">התראת אבטחה</span>
+    <h2 id="duplicate-vote-title">הצבעה כפולה</h2>
+    <p id="duplicate-vote-message" class="dialog-message-body"></p>
+    <form method="dialog" class="dialog-actions">
+      <button autofocus class="btn btn-danger btn-modal-close">סגירה</button>
+    </form>
+  </dialog>
+
+  <!-- Fireworks Celebration Modal (זיקוקים ובתוכו כתוב ההצבעה מאושרת) -->
+  <div id="celebration-overlay" class="celebration-overlay" hidden aria-live="assertive" role="dialog" aria-modal="true" aria-labelledby="celebration-heading">
+    <canvas id="fireworks-canvas"></canvas>
+    <div class="celebration-card">
+      <div class="celebration-badge-glow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 id="celebration-heading" class="celebration-title">ההצבעה מאושרת!</h2>
+      <p id="celebration-message" class="celebration-subtitle">המעטפה נמסרה והרישום נקלט בהצלחה במסד הנתונים.</p>
+      <button id="close-celebration" type="button" class="btn btn-celebration">המשך לבוחר הבא</button>
+    </div>
+  </div>
+
+  <!-- Cosmos Footer -->
+  <footer class="wh-footer">
+    <div class="wh-footer-inner">
+      <div class="footer-seal-group">
+        <img src="/assets/logo.svg" alt="סמל ועדת הבחירות המרכזית" class="footer-logo">
+        <div>
+          <span class="footer-title">ועדת הבחירות המרכזית לכנסת</span>
+          <p class="footer-sub">מערכת קלפי טק — ניהול ופיקוח על הבחירות לכנסת ישראל</p>
+        </div>
+      </div>
+      <div class="footer-info">
+        <p>השימוש במערכת כפוף להוראות חוק הבחירות לכנסת [נוסח משולב], התשכ"ט–1969.</p>
+        <p class="footer-copy">COSMOS INTERCHAIN POWERED • כל הזכויות שמורות © 2026</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
