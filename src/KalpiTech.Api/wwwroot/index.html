@@ -61,10 +61,6 @@
 
     <div class="hero-content-container">
       <div class="hero-intro" id="hero-intro">
-        <div class="hero-badge-tag">
-          <span class="gold-star" aria-hidden="true">★</span>
-          מערכת ממלכתית רשמית • חוק הבחירות לכנסת
-        </div>
         <h2 class="hero-headline">טוהר הבחירות, אמינות ודיוק בזמן אמת</h2>
         <p class="hero-lead">
           המערכת המרכזית לניהול יום הבחירות: זיהוי בוחרים ממוחשב, מניעת הצבעות כפולות, סנכרון נתונים שוטף ופיקוח חי של ועדת הבחירות המרכזית.
@@ -99,57 +95,62 @@
           </div>
         </div>
       </div>
+
+      <!-- Hero Left Side: Secure Login Column Over Background Video -->
+      <div class="hero-login-column">
+        <!-- System Alerts for Login & System Readiness -->
+        <p id="readiness-warning" class="alert-box" role="alert" hidden></p>
+        <p id="message" class="alert-box" role="status" aria-live="polite"></p>
+
+        <!-- Secure Login Portal -->
+        <section id="login" class="presidential-card login-card" hidden>
+          <div class="card-header-bar">
+            <div class="card-seal-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <span class="eyebrow-navy">שער כניסה מאובטח</span>
+              <h2 class="login-card-title">התחברות</h2>
+            </div>
+          </div>
+          <p class="login-instruction">הגישה מיועדת לחברי ועדת הבחירות המרכזית ולצוותי הקלפיות המורשים בלבד.</p>
+          
+          <form id="login-form" class="presidential-form">
+            <div class="form-group">
+              <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
+              <div class="input-with-icon">
+                <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required placeholder="לדוגמה: 1001 או vahadathabchirot@gmail.com">
+                <span class="input-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">סיסמה</label>
+              <div class="input-with-icon">
+                <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="הזן סיסמה">
+                <span class="input-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">התחברות</button>
+          </form>
+
+          <div class="login-security-notice">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>הזנת פרטים כוזבים או ניסיון גישה בלתי מורשה מהווים עבירה פלילית לפי חוק הבחירות לכנסת.</span>
+          </div>
+        </section>
+      </div>
     </div>
   </section>
 
   <!-- Main Application Workspace -->
   <main class="app-main">
-    <!-- System Alerts -->
-    <p id="readiness-warning" class="alert-box" role="alert" hidden></p>
-    <p id="message" class="alert-box" role="status" aria-live="polite"></p>
-
-    <!-- Secure Login Portal -->
-    <section id="login" class="presidential-card login-card" hidden>
-      <div class="card-header-bar">
-        <div class="card-seal-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div>
-          <span class="eyebrow-navy">שער כניסה מאובטח</span>
-          <h2 class="login-card-title">התחברות</h2>
-        </div>
-      </div>
-      <p class="login-instruction">הגישה מיועדת לחברי ועדת הבחירות המרכזית ולצוותי הקלפיות המורשים בלבד.</p>
-      
-      <form id="login-form" class="presidential-form">
-        <div class="form-group">
-          <label for="identifier">מספר קלפי / מייל ועדת הבחירות</label>
-          <div class="input-with-icon">
-            <input id="identifier" name="identifier" autocomplete="username" maxlength="254" required placeholder="לדוגמה: 1001 או vahadathabchirot@gmail.com">
-            <span class="input-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="password">סיסמה</label>
-          <div class="input-with-icon">
-            <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="הזן סיסמה">
-            <span class="input-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%;">התחברות</button>
-      </form>
-
-      <div class="login-security-notice">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span>הזנת פרטים כוזבים או ניסיון גישה בלתי מורשה מהווים עבירה פלילית לפי חוק הבחירות לכנסת.</span>
-      </div>
-    </section>
+    <p id="account-message" class="alert-box" role="status" aria-live="polite"></p>
 
     <!-- Authenticated Executive Portal -->
     <section id="account" class="account-workspace" hidden>
